@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# IntentOS runtime artifacts
+storage/intents.db
+storage/intent_logs/
+storage/downloads/
+storage/reminders.json
+storage/outbox.jsonl
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# Logs / temp
+*.log
+test_results.txt

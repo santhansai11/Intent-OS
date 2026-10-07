@@ -1,0 +1,5 @@
+# IntentOS backend (Python standard library only is sufficient to run everything)
+# Optional dependencies:
+psutil>=5.9          # real system resource monitoring (kernel falls back without it)
+
+# Frontend dependencies are managed by frontend/package.json (npm install)

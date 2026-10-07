@@ -1,0 +1,8 @@
+Operating Systems Review - Slides (outline)
+============================================
+
+Slide 1: From application-centric to intent-centric computing
+Slide 2: The Intent Kernel: scheduling, resources, permissions, recovery
+Slide 3: Intent lifecycle: NEW -> READY -> RUNNING -> COMPLETED
+Slide 4: Demo results and scheduler comparison
+Slide 5: Future work
