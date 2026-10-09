@@ -141,14 +141,15 @@ class TestSaveEntities(unittest.TestCase):
 
 
 class TestSystemAccess(unittest.TestCase):
-    """Default allowlist covers the whole system minus protected dirs."""
+    """Default access is scoped; additional folders require explicit grants."""
 
     def setUp(self):
-        self.svc = FilesystemService()      # default (system-wide) roots
+        self.svc = FilesystemService()
 
-    def test_user_profile_readable(self):
-        out = self.svc.cap_file_info({"path": str(Path.home())})
-        self.assertTrue(out["is_dir"])
+    def test_user_profile_not_implicitly_granted(self):
+        from intent_kernel.ipc.service_bus import ServiceError
+        with self.assertRaises(ServiceError):
+            self.svc.cap_file_info({"path": str(Path.home())})
 
     def test_project_readable(self):
         out = self.svc.cap_file_info({"path": str(root())})
@@ -162,9 +163,13 @@ class TestSystemAccess(unittest.TestCase):
             self.svc.cap_write_file({"path": "C:\\Windows\\Temp\\x.txt",
                                      "content": "nope"})
 
-    def test_temp_dir_anywhere_writable(self):
+    def test_temp_dir_requires_explicit_grant(self):
+        from intent_kernel.ipc.service_bus import ServiceError
         with tempfile.TemporaryDirectory() as td:
-            out = self.svc.cap_write_file({"path": str(Path(td) / "ok.txt"),
+            with self.assertRaises(ServiceError):
+                self.svc.cap_write_file({"path": str(Path(td) / "denied.txt"), "content": "no"})
+            scoped = FilesystemService(allowed_roots=[td])
+            out = scoped.cap_write_file({"path": str(Path(td) / "ok.txt"),
                                            "content": "hello world"})
             self.assertTrue(Path(out["path"]).exists())
 

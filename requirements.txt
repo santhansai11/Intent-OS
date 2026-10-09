@@ -1,5 +1,11 @@
-# IntentOS backend (Python standard library only is sufficient to run everything)
-# Optional dependencies:
-psutil>=5.9          # real system resource monitoring (kernel falls back without it)
+# Python 3.10+; the local kernel itself uses the standard library.
+psutil>=5.9,<8       # host resource monitoring
+keyring>=25,<26      # Google OAuth tokens in the OS credential store
+pypdf>=6.1,<7       # PDF reading and merging, including form trees
+PyMuPDF>=1.24.2,<2  # copy-on-write PDF text edits (AGPL/commercial licensing)
+reportlab>=4,<5     # PDF test fixtures and document rendering
+python-docx>=1.1,<2
+python-pptx>=1,<2
+openpyxl>=3.1,<4
 
 # Frontend dependencies are managed by frontend/package.json (npm install)

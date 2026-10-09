@@ -1,273 +1,175 @@
-# 🧠 IntentOS — Intent-Based Operating System Layer
+# IntentOS
 
-> **"Don't tell the computer which application to open. Tell it what you want to accomplish."**
+**Give your goal a place to run.**
 
-IntentOS is a working prototype of an **intent-based OS interaction and
-resource-management layer**. The user's goal is treated as a managed
-execution entity — an **Intent Process** — with priority, deadline,
-resource requirements, permissions and a recoverable lifecycle. The
-**Intent Kernel** schedules, authorizes, allocates, executes and recovers
-on the user's behalf.
+IntentOS is an AI workspace backed by a durable userspace kernel. Describe a goal; Gemini or local Ollama chooses capabilities, observes real results, and advances the task. The kernel schedules decisions, checks per-goal permissions, arbitrates resources, and checkpoints progress to SQLite. A direct collection workflow searches and copies related files without calling a model.
 
-Inspired by intent-based computing; related work includes
-[OSAi](https://github.com/mattias50/OSAi) (AI-native monitoring and
-self-healing). IntentOS differs by making the *intent itself* the unit of
-scheduling, resource management and access control.
+The application has no canned meeting results, simulated routes, or pretend email delivery. File operations execute locally. Gemini receives goals and needed document excerpts; Ollama keeps inference local. Providers never switch automatically. See [the detailed working model](docs/WORKING_MODEL.md) for architecture, search coverage, recovery semantics, and measured latency.
 
----
+## Run it
 
-## Architecture
+Requires Python **3.10+** and Node **18+** to build the interface. For natural-language planning choose a Gemini API key or [Ollama](https://ollama.com/download). Direct topic-file gathering requires neither.
 
-```text
-USER  ("Prepare everything for my 4 PM meeting.")
-  ↓
-INTENT INTERFACE        (CLI / REST API / Web UI)
-  ↓
-INTENT UNDERSTANDING    nlu/        TF-IDF classifier + entity extraction
-  ↓
-INTENT PLANNER          planner/    goal → ordered execution plan
-  ↓
-INTENT KERNEL           intent_kernel/
-  ├─ Process Manager    intent.py + lifecycle.py   (NEW→READY→RUNNING→…)
-  ├─ Intent Scheduler   scheduler/  FCFS | Priority | Round Robin | EDF
-  ├─ Resource Manager   resource_manager/          (CPU / RAM / network / services)
-  ├─ Permission Manager permission_manager/        (ALLOW / DENY / ASK, least privilege)
-  ├─ Recovery Manager   recovery/                  (checkpoints, retry, resume)
-  ├─ Intent File Manager intent_file_manager.py    (per-intent context dirs)
-  └─ Service Bus        ipc/service_bus.py         (headless service registry)
-  ↓
-SERVICES                services/   calendar · filesystem · maps · messaging · reminder
-  ↓
-HOST OS                 filesystem · processes · (psutil monitoring when installed)
-```
-
-## Quick start
-
-Requires Python 3.8+ only (standard library). Optional: `pip install psutil`
-for real system monitoring.
-
-```bash
-# ── The real application ──────────────────────────────────────────────
-python run_intentos.py --app              # UI + API at http://127.0.0.1:8765
-#   (or: python run_intentos.py --server --port 8765)
-#   open http://127.0.0.1:8765 — no Node.js required
-
-# Research & writing: searches Wikipedia/DuckDuckGo, summarizes with a free
-# LLM (pollinations.ai, no API key), and WRITES A REAL FILE to storage/workspace/
-python run_intentos.py "Write a brief summary of quantum computing"
-python run_intentos.py "Explain CPU scheduling algorithms"
-python run_intentos.py "Create a summary about the Linux kernel"
-python run_intentos.py "Summarize my latest document"
-
-# File management: works on real folders (subject to the security allowlist)
-python run_intentos.py "Find agenda.docx in d:\Intent OS\storage\documents"
-python run_intentos.py "Read the file d:\Intent OS\storage\documents\meeting_notes.pdf"
-python run_intentos.py "Organize my Downloads folder"
-python run_intentos.py "Organize the folder d:\Intent OS\storage\sample_mixed"
-python run_intentos.py "Back up the folder d:\Intent OS\storage\documents"
-
-# Classic OS-project demos
-python run_intentos.py "Prepare everything for my 4 PM meeting."
-python run_intentos.py "For my compiler design meeting at 4 PM, gather the related files and save them in my Desktop meeting folder"
-python run_intentos.py "Do deep research on compiler design and save it in my Documents folder"
-python run_intentos.py --demo                  # 5 concurrent intents
-python run_intentos.py --compare               # FCFS vs Priority vs RR vs EDF
-
-# Run the test suite (65 tests)
-python -m unittest discover -s tests
-```
-
-> **File access security:** the filesystem service only touches paths under its
-> allowlist (the project directory + your user profile by default, configurable
-> via `FilesystemService(allowed_roots=[...])`). Paths outside the allowlist are
-> denied by the service, and write steps require WRITE permission from the
-> intent's policy.
-
-### Summarize documents and organize files
-
-Ask for a document summary without supplying an absolute path, for example
-**“Summarize my latest document”** or **“Summarize the PDF in my Documents
-folder.”** IntentOS searches its document/workspace folders and your Documents,
-Downloads, and Desktop folders, then extracts text from TXT, Markdown, CSV,
-HTML, DOCX, PPTX, XLSX, and text-based PDF files. When several files match, it selects a
-unique filename match when possible, otherwise the most recently modified
-document. Scanned PDFs need OCR and are not currently supported.
-
-File organization is available with requests such as **“Organize my Downloads
-folder”** or **“Sort the files in this folder by type.”** Files are moved into
-category subfolders (Docs, Images, Videos, Audio, Archives, Code, Programs,
-and Other). Name a folder or give a path to organize a location other than
-Downloads.
-
-### Meeting files and deep research
-
-For meeting requests, name the topic and time and ask IntentOS to gather or
-save the related files. It checks calendar attachments and searches Documents,
-Downloads, Desktop, and IntentOS storage. A natural destination such as **“my
-Desktop meeting folder”** works without a full path. If no destination is
-specified, files are copied into a topic-named folder under
-`storage/workspace/`; the originals stay in place.
-
-For research, name a topic and optionally a destination such as **“my
-Documents folder”** or **“Research folder.”** IntentOS searches the web,
-fetches source extracts, writes a research brief, and saves it to the requested
-folder. Deep or thorough requests fetch more sources and produce a longer
-brief.
-
-### Scheduling is automatic
-
-You never pick a scheduling algorithm. The kernel's `auto` scheduler inspects
-the runnable set before every dispatch and adopts the right classical policy:
-
-```text
-aging (nobody starves) → deadlines near (EDF) → mixed priorities
-                       → 3+ equal intents (round robin) → FCFS
-```
-
-The UI shows the live decision and its reason, e.g.
-*"2 intent(s) with deadlines, nearest in 25 min - earliest-deadline-first"*.
-The four classical policies remain pluggable (`--scheduler`, `/api/strategy`,
-`/api/simulation`) because comparing them is part of the project's evaluation.
-
-### Web UI
-
-Two options, same kernel:
-
-```bash
-# Built-in UI (zero dependencies): serve, then open the printed URL
+```powershell
+python -m pip install -r requirements.txt
+npm --prefix frontend install
+npm --prefix frontend run build
 python run_intentos.py --app
-
-# React dashboard (optional, for development)
-python run_intentos.py --server           # terminal 1
-cd frontend && npm install && npm run dev # terminal 2 → http://localhost:5173
 ```
 
-The UI lets you submit intents (text or voice via the Web Speech API), watch
-the intent lifecycle and per-step checkpoints live, see the auto-selected
-scheduling policy and its reason, inject service faults to observe recovery,
-inspect **every file the intents created on disk** (View = inline preview,
-Open = reveal in Windows Explorer/Finder), and see kernel resource
-allocations + the service registry.
+Open **http://127.0.0.1:8765**. The Python server serves the built React app; you do not need a separate frontend process after building it. `--server` starts without opening a browser. Running `python run_intentos.py` also starts the server.
 
-### Where your files go
+1. In **Connections**, choose **Gemini** for cloud planning or **Ollama** for private local planning.
+2. For Gemini, save your key in the OS credential store, refresh available models, and select a text model. The default is `gemini-3.5-flash-lite`. For Ollama, select a downloaded local model such as your existing `qwen3:4b`.
+3. Add source folders under **Accessible folders** and save provider and folder settings.
+4. In Overview, choose **Ask anything** or **Gather related files · no AI needed**. For direct gathering, enter topic keywords such as `cloud computing`, not a long instruction.
+5. Choose **Selected folders** (then expand **read grants** to select sources), or **Entire computer · accessible files** for that goal. The workspace remains available for outputs; that does not add it to explicitly selected search folders.
+6. Set **Save in folder** to an absolute folder such as `D:\meeting` or `C:\Users\you\Desktop\Reports`. It may already exist; missing folders are created when a file is saved. This is a separate per-goal grant, so you do not need whole-computer access or to add the output folder to Connections. Optionally enter a new collection folder name or output filename. Leave Save in folder blank to use the workspace. Both AI providers receive the selected destination, and relative output filenames resolve there.
+7. The visible output checkbox grants creation of new collections/reports for this goal. Disable it to review those actions individually. Moves, overwrites, email sends, and calendar changes still require exact-action approval.
 
-| Intent | Output location |
+Gemini keys never appear in source code, settings JSON, task context, or browser responses. The password field stays empty after saving. A `GEMINI_API_KEY` environment variable is also supported; it takes precedence over the stored key. Google account OAuth is separate and unnecessary for local files or Gemini. Free-tier availability and quotas belong to the Google project; IntentOS does not enable billing or silently change providers when a quota is reached. [Gemini model documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) · [Pricing and free-tier details](https://ai.google.dev/gemini-api/docs/pricing).
+
+### Files and summary formats
+
+File gathering scans filenames and cached document text, copies matches into a **new** folder, and creates a provenance manifest plus downloadable ZIP. Original files are never moved or edited. Duplicate filenames receive stable suffixes. Search matches whole topic phrases: `operating system` does not match `system` alone. Separate alternatives with commas, for example `operating system, OS`. Direct-mode destination instructions are rejected with guidance to use the separate folder field or Ask anything. This remains lexical matching, so an incidental mention can still match; it is not semantic classification.
+
+Summary exports create real **PDF, DOCX, PPTX, XLSX, TXT, Markdown, HTML, CSV, JSON, RTF, ODT, EPUB, and ZIP** files. Office formats use their actual document containers, not renamed text. These are prose summaries: PPTX paginates content into slides, XLSX/CSV organize sections into rows, and ZIP contains Markdown. Unsupported extensions are rejected explicitly. Scanned-document OCR and arbitrary file-format conversion are not implemented.
+
+Whole-computer access means files readable by your existing OS account, with credential, hidden, kernel-state and OS-managed-directory exclusions. It does not elevate permissions. **Search in** shows the actual source folders; the output folder does not add search locations. Scans first discover filenames across those sources, then inspect cached document text. A durable SQLite queue yields to the scheduler every 250 items or about two seconds, and automatically continues until finished. There is no overall 20-second, 50,000-entry or 1,000-match cutoff. Live counts distinguish discovered files from contents checked. Pause/restart preserves progress; copying starts only after the scan finishes. Content search still examines the first 16,000 extracted characters of supported documents up to 10 MB, with no OCR. Prior IntentOS collection folders are excluded to avoid gathering copies repeatedly. Use focused source folders for faster searches. Copies are limited to 500 MB per collection.
+
+The Ollama integration uses its native [chat endpoint](https://docs.ollama.com/api/chat) and [JSON-schema structured output](https://docs.ollama.com/capabilities/structured-outputs), preserving the model's default reasoning mode. Small prompts use an 8K context; longer histories use 16K. A local decision can take minutes on limited hardware, so the request timeout is ten minutes. There is no cloud fallback and no model download triggered by the app. `OLLAMA_HOST` must be loopback. The planner checks model metadata before sending context and rejects cloud-backed models and aliases. Local model quality determines how well a complex goal is planned; unsupported capabilities are not invented.
+
+Examples to try:
+
+- “Find the latest document in my workspace and summarize the action items.”
+- “Gather my cloud computing files into a separate meeting folder. Keep the originals unchanged.”
+- “Prepare a meeting pack from my project files, then save a summary of those documents as a DOCX.”
+- “Explain deadlock prevention and save a PDF in my workspace.”
+- “Research how operating systems prevent deadlocks and save a brief with sources.”
+- “List my calendar events tomorrow and help me prepare for the first meeting.”
+- “Create a meeting at 4 PM tomorrow titled Project review.”
+- “Calculate a walking route from [starting address] to [destination].”
+- “Write an email to [full email address] with the meeting notes, then ask me to approve sending it.”
+
+For development, run `python run_intentos.py --server` and `npm --prefix frontend run dev`. Vite proxies `/api` to port 8765.
+
+## Connect Google
+
+Copy `.env.example` to `.env` and fill in your own credentials. The file is ignored by Git. Restart the Python server after changing environment settings.
+
+1. Create a Google Cloud project and configure its OAuth consent screen. For a personal project in Testing mode, add your Google account as a test user.
+2. Enable **Google Calendar API**, **Google Drive API**, and/or **Gmail API**, according to the capabilities you want.
+3. Create an OAuth client of type **Web application**.
+4. Add this exact authorized redirect URI: `http://127.0.0.1:8765/api/google/callback`. Match the hostname and port in `GOOGLE_REDIRECT_URI` if you change them.
+5. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`.
+6. In **Connections**, select the services you want and click **Connect selected services**. Complete consent in Google.
+
+The implementation uses [Google’s authorization-code flow](https://developers.google.com/identity/protocols/oauth2/web-server), a random expiring one-use state, PKCE, offline refresh, and scope checks. Tokens are stored through `keyring` in the OS credential store, never in task context, browser storage, or the SQLite process database. On Linux, an unlocked Secret Service/keyring backend is required; Windows uses Credential Manager. There is no plaintext token fallback.
+
+| Connection | OAuth scope | Available operations |
+| --- | --- | --- |
+| Calendar | `calendar.events` | List events in a timezone-aware interval; create an event after approval |
+| Drive | `drive.metadata.readonly` | Search filenames and retrieve metadata/links |
+| Gmail | `gmail.send` | Send a plain text email to one address after approval |
+
+Drive content download, Gmail inbox reading, attachments, and arbitrary Google services are not implemented. Disconnect removes this app’s locally stored credentials. Revoke the grant in your Google account if you also want to remove Google-side access. Google may expire testing-mode or revoked refresh tokens; reconnect when requested.
+
+**Maps is separate:** enable the **Routes API**, configure Google Cloud billing, and set `GOOGLE_MAPS_API_KEY`. The real route tool calls [Compute Routes](https://developers.google.com/maps/documentation/routes/compute_route_directions). OAuth sign-in alone does not enable Maps or pay API charges. Restrict the key to the Routes API and appropriate server restrictions.
+
+## OS concepts that actually execute
+
+This is an **agent runtime organized around OS concepts**, not a replacement OS or a claim that ordinary agents cannot persist state. Its process-management layer runs above the host operating system on Windows and Linux.
+
+| OS concept | Implementation |
 | --- | --- |
-| "Write a summary of X" / "Explain X" | `storage/workspace/` and `storage/documents/research/` |
-| "Back up the folder ..." | `storage/backups/<name>-<timestamp>/` |
-| "Download ..." | `storage/downloads/` |
-| Per-intent execution context (plan, checkpoints, log) | `storage/intent_logs/I<id>/` |
-
-## The intent lifecycle
-
-```text
-NEW → READY → RUNNING → COMPLETED
-            RUNNING → WAITING → READY      (resources short)
-            RUNNING → RECOVERY → READY     (step failed, retry from checkpoint)
-            RUNNING → FAILED → RECOVERY    (retries exhausted)
-```
-
-Every completed step is checkpointed to `storage/intent_logs/<id>/`:
-`intent.json`, `plan.json`, `permissions.json`, `checkpoint.json`,
-`execution.log` and an `output/` directory — so a failed intent resumes
-where it stopped instead of restarting.
-
-## Example output
+| Process control block | Each intent has a UUID, goal, lifecycle state, priority, absolute deadline, folder grants, read grants, pending action, results, retry counters, and execution budget. |
+| Cooperative scheduling | One quantum is one model decision or capability call. The next dispatch uses aging after 30 seconds, then near-deadline EDF, then priority with round robin among peers. |
+| Bounded execution | Three worker slots; one planner call at a time; at most 48 model decisions per goal. File scans, reads, responses, prompts, and writes have bounds. Direct collection bypasses planning. |
+| Resource arbitration | Exclusive named resources: local model, filesystem, Calendar, Gmail, etc. Each quantum acquires one resource, so there is no hold-and-wait lock cycle. |
+| Capability security | A fixed registry validates every tool and argument. Reads need a per-goal scope or a one-action approval. New collections/reports may use the explicit per-goal output grant; other writes/sends require approval of immutable action IDs and arguments. |
+| Address-space analogy | Folder grants constrain file operations to canonical paths. Hidden paths, credential files and private kernel state are excluded. These are application boundaries, not OS memory isolation. |
+| Journaling/checkpoints | SQLite WAL with FULL synchronization. The process checkpoint and audit event commit together after every decision and completed call. |
+| Crash recovery | Restore queued processes on startup. Completed steps are never automatically replayed. Interrupted reads can retry; interrupted writes enter REVIEW. |
+| Interrupts/control | Pause and cancel are cooperative: an in-flight call finishes and its effect is recorded before the state changes. A cancellation cannot undo an already-sent email. |
+| IPC/service registry | Validated capability calls dispatch to local file services and authenticated HTTP APIs. The planner does not receive a shell. |
+| Observability | Server-sent events update the UI, including the actual queue, scheduler decision, resource owners, checkpoints, and audit trail. |
 
 ```text
-Intent I1024  [prepare_meeting]  state=COMPLETED
-  Goal      :  Prepare everything for my 4 PM meeting.
-  Priority  : HIGH
-  Deadline  : 16:00
-  OK   S1 calendar.find_event
-  OK   S2 filesystem.find_documents
-  OK   S3 maps.calculate_route
-  OK   S4 messaging.prepare_notification
-  OK   S5 reminder.set_reminder
+Goal → READY → model decision → capability / question / answer
+                   │
+                   ├─ requires permission → APPROVAL → explicit approve / deny
+                   ├─ missing detail      → WAITING_INPUT → user reply
+                   └─ allowed call        → RUNNING → durable checkpoint → READY
 
-  Result for the user:
-    - Meeting : Operating Systems Review
-    - Time    : 16:00
-    - Location: Room 204
-    - Documents: 3 related file(s) found
-    - Travel  : 35 minutes (Room 204)
-    - Notification: queued to user@local
-    - Reminder: R… at 16:00
+Transient read error → RECOVERY (backoff) → READY
+Setup / repeated error → BLOCKED → user fixes configuration → resume
+Uncertain write outcome → REVIEW → user checks destination → retry or skip
+Answer → COMPLETED
+Pause → PAUSED; cancel → CANCELLED, both at a safe boundary
 ```
 
-## Scheduler evaluation (`python run_intentos.py --compare`)
+**Delivery semantics:** SQLite cannot transact atomically with Gmail or your filesystem. IntentOS does not claim exactly-once external effects. If the service times out after a write, or the process dies between a write and its checkpoint, the user must inspect the destination before retrying. Calendar creation also uses a stable operation-derived event ID. File writes use atomic replacement; file copy/move may need reconciliation after interruption.
 
-Same synthetic workload on one simulated resource:
+**Scheduling semantics:** this is cooperative, not real-time preemptive scheduling. An active model call or HTTP request can delay an urgent goal using the same resource. Deadlines are best effort. CPU/RAM readings come from the host monitor, but the runtime does not enforce cgroups, OS process quotas, containers, or a security sandbox against hostile local software. Folder checks are not a substitute for OS isolation against concurrent filesystem tampering.
 
-| strategy    | avg wait | avg turnaround | deadline misses |
-|-------------|---------:|---------------:|----------------:|
-| fcfs        |    12.60 |          18.20 |               3 |
-| priority    |    10.40 |          16.00 |               2 |
-| round_robin |     4.00 |          19.40 |               4 |
-| deadline    |     7.00 |          12.60 |      **0**      |
+## Capabilities
 
-Deadline-aware (EDF) scheduling eliminates deadline misses on this workload,
-while Round Robin minimizes waiting time — illustrating the trade-off the
-Intent Kernel makes configurable.
+The registry exposes 20 real tools: system status; file list/search/read/write/copy/move; topic search and collection; document export; PDF text replacement and merging; knowledge search, Wikipedia extracts, and multi-source research; Calendar list/create; Drive metadata search; Gmail send; Maps routes.
 
-## REST API
+PDF/Office reading extracts existing text (no OCR). Document export creates the 13 formats described above. PDF editing tools save new copies and refuse to overwrite inputs or existing outputs. Text replacement supports exact, single-line ASCII text in a single horizontal style span; it uses standard fonts and may shrink text to fit. Scanned, rotated, signed, encrypted, and form PDFs need specialized editors for text changes. Merging preserves page order and interactive form fields, with separate field namespaces per input. Inputs are limited to 20 MB / 200 pages each; merges to 500 pages / 100 MB total. Free research connectors query Wikipedia, Crossref and Open Library concurrently and return excerpts/metadata with source URLs and provider failures. This is limited research, not arbitrary browser automation or full-text access to every source. Dates, recipients, destinations, and content come from the user/model and actual observations, not fixed goal templates.
 
-| Method | Route             | Body                              | Purpose                          |
-|--------|-------------------|-----------------------------------|----------------------------------|
-| GET    | `/api/status`     | —                                 | full kernel snapshot             |
-| GET    | `/api/metrics`    | —                                 | scheduling metrics               |
-| GET    | `/api/system`     | —                                 | real host resources              |
-| GET    | `/api/simulation` | —                                 | scheduler comparison             |
-| POST   | `/api/intents`    | `{"text": "..."}`                 | submit an intent (auto-executes) |
-| POST   | `/api/strategy`   | `{"strategy": "deadline"}`        | switch scheduler at runtime      |
-| POST   | `/api/faults`     | `{"service": "messaging", "count": 1}` | fault injection (recovery demo) |
+To add a tool, register its schema, read scope, side-effect flag, handler, and resource identity in `services/capabilities.py`. The planner receives the registry automatically; no classifier retraining or goal-specific plan template is needed. Keep credentials outside the tool catalog and observations.
 
-## Security model (least privilege)
+## Storage and API
 
-Each intent type has an explicit permission policy:
+- `storage/runtime/kernel.sqlite3`: private intent state and audit events; ignored by Git.
+- `storage/runtime/settings.json`: selected provider, models and configured folders; no API keys.
+- `storage/runtime/search-cache.sqlite3`: local document extraction cache, keyed by canonical path, modification time and size.
+- `storage/runtime/kernel.lock`: host-level single-instance lock.
+- `storage/workspace/`: user-visible artifacts (preserved across restarts).
+- OS credential store: Gemini key and Google tokens, namespaced by the runtime directory.
+
+`INTENTOS_DATA_DIR` can select a separate runtime directory. IntentOS is a **single-user loopback application**. It rejects untrusted Host/Origin headers and requires a per-server session token on mutations. There is no multi-user authentication; do not expose it on a public interface. Local software running as your OS account can access the app and its files. Task history is stored locally without application-level encryption; protect your OS account and backups accordingly.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/status`, `/api/events` | Snapshot and live SSE stream |
+| GET | `/api/models?provider=gemini`, `/api/models?provider=ollama`, `/api/system` | Provider model discovery and host metrics |
+| GET | `/api/session` | Session token for `X-IntentOS-Token` on JSON POST requests |
+| POST | `/api/intents` | Goal, priority, deadline, roots, search_roots, output_folder, scopes, access_mode, auto_outputs, optional direct workflow |
+| POST | `/api/intents/{id}/{action}` | approve, deny, reply, pause, resume, cancel, retry, skip |
+| POST | `/api/settings`, `/api/ai/key` | Provider/models/folders; securely store or remove Gemini key |
+| POST | `/api/google/connect`, `/api/google/disconnect` | Google connection lifecycle |
+| GET | `/api/artifact?intent={id}&step={id}` | Download a checkpointed artifact |
+
+## Verification and project layout
+
+```powershell
+python -m unittest discover -s tests
+npm --prefix frontend run build
+```
+
+Runtime regressions cover real file writes/downloads, approvals, denial, folder escapes, schema validation, fairness, EDF, aging, cancellation, resource contention, restart recovery, OAuth state/PKCE/refresh, and API CSRF/Host checks. Model decisions and Google HTTP responses are test doubles in these tests; a passing suite does not establish live model quality or access to your Google account. The symlink test skips when the host cannot create symlinks.
+
+`tests/test_collections_exports.py` additionally reopens all 13 export formats and verifies topic matching, caching, source hashes, duplicate filenames, new-destination enforcement, search-folder isolation, direct execution without AI, narrow output grants, provider pinning, and key redaction. Run `python scripts/workflow_live_test.py` for an opt-in Gemini test using synthetic files through the real HTTP API, or add `--combined-only` for the gathering-plus-brief workflow. These scripts preserve existing configured folders and leave Gemini selected. Their verification reports stay under ignored `storage_test/`.
+
+Measured on this machine on 9 October 2026: direct collection **0.378 s**, Gemini collection **26.849 s** (includes retry after HTTP 503), PDF summary **12.755 s**, and a combined meeting pack plus source-based Markdown brief **28.135 s**. These are small-fixture measurements, not whole-disk speed guarantees. See the working model for the test records.
+
+For a live PDF workflow, start the server, install `qwen3:4b` in Ollama, then run `python scripts/pdf_live_test.py`. This explicit test selects that model, grants a newly created synthetic fixture folder, and submits a natural-language request through the API. It approves only the two exact expected PDF actions, saves outputs in a separate `results` folder, checks page content/order, and compares the entire originals folder's SHA-256 manifest. Each run writes a `verification.json` report under `output/pdf/`. Normal app writes still require user approval. `tests/test_pdf_tools.py` also exercises overwrite prevention, path grants, form preservation, and failure behavior.
 
 ```text
-prepare_meeting:  calendar→READ  filesystem→READ  maps→USE
-                  messaging→WRITE reminder→WRITE
-passwords / system_files / kernel_internals: DENIED for all intents
-unknown services: default-deny, requires user confirmation (ASK)
+intent_kernel/runtime.py     Durable process manager, scheduler, workers, audit and recovery
+intent_kernel/config.py      Local settings and environment loading
+planner/agent.py             Ollama structured next-action planner
+planner/router.py            Per-intent provider routing and compact Gemini context
+services/capabilities.py     Validated real tool registry and file boundaries
+services/collections.py      Cached topic search, source-preserving copies and manifests
+services/documents.py        Thirteen real summary export formats
+services/gemini.py           Bounded Gemini transport and secure API-key storage
+services/connections.py      Bounded HTTP, Google OAuth and OS credential storage
+api/server.py               Loopback HTTP/SSE API and React static serving
+frontend/src/              Responsive task workspace, approvals and kernel inspector
+tests/test_runtime.py       New runtime and integration regressions
 ```
 
-Denied steps are recorded and marked BLOCKED; the rest of the plan still
-completes.
-
-## Project structure
-
-```text
-intent_kernel/     the OS layer: kernel, schedulers, resources, permissions,
-                   recovery, service bus, persistence, simulation
-nlu/               TF-IDF intent classifier + entity extraction (no dependencies)
-planner/           goal → execution plan templates
-services/          headless services: calendar, filesystem, maps, messaging, reminder
-api/               stdlib REST server
-frontend/          React + Vite dashboard
-storage/           intents.db (SQLite), per-intent logs, documents, downloads
-tests/             48 unit + integration tests (stdlib unittest)
-run_intentos.py    CLI entry point
-```
-
-## What this prototype is / is not
-
-Implemented: NLU classification, planning, intent processes with full
-lifecycle, 4 schedulers, resource accounting with WAITING on overcommit,
-permission boundaries with DENY/ASK, per-step checkpoints and recovery,
-service registry with fault injection, SQLite persistence, per-intent file
-contexts, REST API, React dashboard, scheduler simulation/evaluation, and
-real file management (find/read/organize/backup with a path allowlist).
-
-Not implemented (future work): real OS process isolation (namespaces /
-cgroups), voice-input on the kernel side, LLM-backed NLU, cross-device intent
-execution, dynamic service discovery over sockets/REST, permission
-persistence and a true interactive confirmation loop.
-
-## Scope note
-
-IntentOS is **not** a bootable OS or a Linux kernel replacement — it is an
-intent-centric **layer** that uses the host OS's existing mechanisms,
-focusing the systems contribution on scheduling, resource management,
-security and recovery at the *intent* level.
+The original classifier, template planner, simulated services, and classical scheduler comparison remain solely for **educational demonstrations and regression tests**. `--demo` explicitly labels synthetic results; `--compare` compares FCFS/Priority/RR/EDF on a synthetic workload. Neither powers the application. Existing documents/artifacts are preserved; the obsolete duplicate embedded UI and unused React components were removed.

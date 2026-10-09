@@ -52,20 +52,16 @@ class FilesystemService(BaseService):
         self.downloads_dir = Path(downloads_dir_path) if downloads_dir_path else downloads_dir()
         self.backups_dir = Path(backups_dir_path) if backups_dir_path else backups_dir()
         self.workspace_dir = Path(workspace_dir_path) if workspace_dir_path else workspace_dir()
-        # Security model: by default intents may touch the whole system
-        # (all existing drives + the user profile), EXCEPT protected OS
-        # directories. Restrict via INTENTOS_ALLOWED_ROOTS env var or by
-        # passing allowed_roots=[...] explicitly (used by tests/sandbox).
+        # Legacy demo service: default to project and ordinary document folders.
+        # The real application uses the stricter per-intent CapabilityRegistry.
         if allowed_roots is None:
             env = os.environ.get("INTENTOS_ALLOWED_ROOTS")
             if env:
                 allowed_roots = [s for s in re.split(r"[;,]", env) if s.strip()]
-            elif os.name == "nt":
-                import string
-                allowed_roots = [f"{letter}:\\" for letter in string.ascii_uppercase
-                                 if Path(f"{letter}:\\").exists()]
             else:
-                allowed_roots = ["/"]
+                from intent_kernel.paths import root
+                allowed_roots = [root(), Path.home() / 'Documents',
+                                 Path.home() / 'Downloads', Path.home() / 'Desktop']
         if allowed_roots is None:                       # pragma: no cover
             from intent_kernel.paths import root
             allowed_roots = [root(), Path.home()]

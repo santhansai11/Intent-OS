@@ -18,3 +18,13 @@ frontend/dist/
 # Logs / temp
 *.log
 test_results.txt
+
+# Local configuration and durable runtime (contains private task context)
+.env
+.env.*
+!.env.example
+storage/runtime/
+storage_test/
+/output/pdf/
+/tmp/pdfs/
+*.sqlite3*

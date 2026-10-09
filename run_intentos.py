@@ -112,7 +112,7 @@ def cmd_app(port: int, open_browser: bool = True) -> None:
 
 def main(argv=None) -> int:
     _configure_stdout()
-    parser = argparse.ArgumentParser(description="IntentOS prototype")
+    parser = argparse.ArgumentParser(description="IntentOS — local intelligence, durable intent processes")
     parser.add_argument("text", nargs="*", help="natural language goal")
     parser.add_argument("-s", "--scheduler", default=DEFAULT_STRATEGY,
                         choices=sorted(SCHEDULERS),
@@ -131,15 +131,32 @@ def main(argv=None) -> int:
     if args.compare:
         cmd_compare()
         return 0
-    if args.app or args.server:
+    if args.app or args.server or (not args.text and not args.demo):
         cmd_app(args.port, open_browser=args.app and not args.no_browser)
         return 0
 
-    kernel = IntentKernel(strategy=args.scheduler, latency=args.latency)
     if args.demo:
+        print('EDUCATIONAL SIMULATION: calendar, maps and messaging below are synthetic. Use --app for real integrations.')
+        kernel = IntentKernel(strategy=args.scheduler, latency=args.latency)
         cmd_demo(kernel)
     elif args.text:
-        cmd_run(kernel, " ".join(args.text))
+        import time
+        from intent_kernel.runtime import Runtime, TERMINAL
+        kernel = Runtime()
+        try:
+            task = kernel.submit(' '.join(args.text))
+            ident = task['id']
+            print(f'Intent {ident} admitted. Press Ctrl+C to leave it checkpointed.')
+            while True:
+                kernel.tick()
+                task = kernel.tasks[ident]
+                if task['state'] in TERMINAL or task['state'] in ('APPROVAL', 'WAITING_INPUT', 'BLOCKED', 'REVIEW'):
+                    print(task['answer'] or task['question'] or task['error'] or task['pending']['summary'])
+                    print(f"State: {task['state']}. Open --app to review or continue this intent.")
+                    return 0 if task['state'] == 'COMPLETED' else 2
+                time.sleep(0.1)
+        finally:
+            kernel.close()
     else:
         parser.print_help()
     return 0

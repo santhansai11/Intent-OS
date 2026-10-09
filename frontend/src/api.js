@@ -1,30 +1,14 @@
-const BASE = "/api";
-
-async function get(path) {
-  const res = await fetch(BASE + path);
-  if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
-  return res.json();
-}
-
-async function post(path, body) {
-  const res = await fetch(BASE + path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body || {}),
+let token;
+export async function api(path, body) {
+  if (body !== undefined && !token) token = (await api('/session')).token;
+  const response = await fetch('/api' + path, body === undefined ? {} : {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-IntentOS-Token': token },
+    body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `POST ${path} -> ${res.status}`);
+  const data = await response.json();
+  if (!response.ok) {
+    if (response.status === 403) token = undefined;
+    throw new Error(data.error || 'Request failed');
   }
-  return res.json();
+  return data;
 }
-
-export const api = {
-  status: () => get("/status"),
-  health: () => get("/health"),
-  submitIntent: (text) => post("/intents", { text }),
-  setStrategy: (strategy) => post("/strategy", { strategy }),
-  injectFault: (service, count = 1) => post("/faults", { service, count }),
-};
-
-export default api;
