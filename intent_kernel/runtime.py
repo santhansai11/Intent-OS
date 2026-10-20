@@ -26,12 +26,16 @@ SCOPES = {'system', 'files', 'web', 'calendar', 'drive', 'gmail', 'maps'}
 
 
 class Runtime:
-    def __init__(self, config=None, planner=None, registry=None, workers=3):
+    def __init__(self, config=None, planner=None, registry=None, workers=None):
         self.config = config or Config()
         self.google = GoogleConnection(self.config)
         self.registry = registry or CapabilityRegistry(self.config, self.google)
         self.planner = planner or PlannerRouter(self.config)
-        self.worker_count = workers
+        self.worker_count = workers or self.config.execution['workers']
+        self._worker_override = workers
+        from services.uploads import UploadStore
+        self.uploads = UploadStore(self.config)
+        self._host_sample = (0, 0)
         self.cv = threading.Condition(threading.RLock())
         self.stopping = False
         self.threads = []
@@ -67,6 +71,13 @@ class Runtime:
         self.tasks = {row[0]: json.loads(row[1]) for row in self.db.execute('SELECT id,data FROM processes')}
         for task in self.tasks.values():
             task.setdefault('provider', 'ollama')
+            if (task['state'] == 'REVIEW' and (task.get('pending') or {}).get('tool') == 'gmail_send'
+                    and task.get('error', '').startswith('gmail.googleapis.com returned HTTP 403 ')):
+                task['state'] = 'BLOCKED'
+                task['error'] = 'Gmail rejected the send (HTTP 403); this request was not sent. Enable Gmail API in Google Cloud and check Gmail permissions before resuming.'
+                task['history'].append({'action': task['pending'], 'observation': {'status': 'rejected', 'http_status': 403, 'message': task['error']}})
+                task['pending'] = None
+                self._save(task, 'recovery', 'Classified the recorded Gmail 403 as a rejected request; no automatic retry')
             if task['state'] in ('RUNNING', 'CANCELLING', 'PAUSING'):
                 pending = task.get('pending')
                 scanning = pending and pending['tool'] == 'files_collect' and self.registry.collections.scan_incomplete(pending['id'])
@@ -88,7 +99,7 @@ class Runtime:
         with self.cv:
             self.cv.notify_all()
 
-    def submit(self, goal, priority='NORMAL', deadline=None, roots=None, scopes=None, access_mode='selected', auto_outputs=False, workflow=None, search_roots=None, output_folder=None):
+    def submit(self, goal, priority='NORMAL', deadline=None, roots=None, scopes=None, access_mode='selected', auto_outputs=False, workflow=None, search_roots=None, output_folder=None, attachments=None, depends_on=None):
         if not isinstance(goal, str) or not goal.strip() or len(goal) > 12000:
             raise ValueError('Enter a goal between 1 and 12000 characters')
         if priority not in ('LOW', 'NORMAL', 'HIGH'):
@@ -104,16 +115,21 @@ class Runtime:
                 raise ValueError('Invalid deadline')
         if access_mode not in ('selected', 'system') or not isinstance(auto_outputs, bool):
             raise ValueError('Invalid folder access or output permission')
-        roots = roots if roots is not None else [self.config.roots[0]]
+        roots = roots if roots is not None else self.config.roots
         scopes = scopes if scopes is not None else ['system', 'files']
-        if not isinstance(roots, list) or any(r not in self.config.roots for r in roots):
+        if not isinstance(roots, list) or any(not isinstance(r, str) or not Path(r).expanduser().is_absolute() for r in roots):
             raise ValueError('Choose folders from Connections')
+        configured = {Path(r).resolve(): r for r in self.config.roots}
+        if any(Path(r).expanduser().resolve() not in configured for r in roots):
+            raise ValueError('Choose folders from Connections')
+        roots = list(dict.fromkeys(configured[Path(r).expanduser().resolve()] for r in roots))
         if access_mode == 'system':
             roots = list(dict.fromkeys([str(self.config.workspace), *self.config.system_roots()]))
             search_roots = self.config.system_roots()
         elif search_roots is not None:
-            if not isinstance(search_roots, list) or any(not isinstance(r, str) or r not in roots for r in search_roots):
+            if not isinstance(search_roots, list) or any(not isinstance(r, str) or not Path(r).expanduser().is_absolute() or Path(r).expanduser().resolve() not in {Path(root) for root in roots} for r in search_roots):
                 raise ValueError('Search folders must be among this intent’s granted folders')
+            search_roots = list(dict.fromkeys(configured[Path(r).expanduser().resolve()] for r in search_roots))
         if not isinstance(scopes, list) or any(s not in SCOPES for s in scopes):
             raise ValueError('Invalid read grant')
         # The user's explicit destination is a separate, per-goal folder grant.
@@ -143,14 +159,25 @@ class Runtime:
                 'cancel_requested': False, 'pause_requested': False, 'active': '', 'elapsed_ms': 0}
         task.update({'access_mode': access_mode, 'auto_outputs': auto_outputs, 'provider': self.config.provider,
                      'search_roots': search_roots, 'output_folder': output_folder or str(self.config.workspace)})
+        task['attachments'] = self.uploads.resolve(attachments or [])
+        dependencies = depends_on if depends_on is not None else []
+        if not isinstance(dependencies, list) or len(dependencies) > 10 or any(not isinstance(i, str) or i not in self.tasks for i in dependencies):
+            raise ValueError('Choose up to 10 existing dependency intents')
+        task['depends_on'] = list(dict.fromkeys(dependencies))
+        if task['attachments'] and 'files' not in scopes:
+            raise ValueError('Enable Local files to use attachments')
         if workflow is not None:
-            if not isinstance(workflow, dict) or workflow.get('type') != 'collect' or set(workflow) != {'type', 'query', 'destination'}:
+            if isinstance(workflow, dict) and workflow.get('type') == 'index' and set(workflow) == {'type', 'path'}:
+                action = {'kind': 'tool', 'tool': 'knowledge_index', 'summary': 'Build the local knowledge index', 'arguments': {'path': workflow['path']}, 'complete_after': True}
+            elif isinstance(workflow, dict) and workflow.get('type') == 'collect' and {'type', 'query', 'destination'} <= set(workflow) and not set(workflow) - {'type', 'query', 'destination', 'modified_after', 'modified_before', 'include_projects'}:
+                action = {'kind': 'tool', 'tool': 'files_collect', 'summary': 'Gather related files into a separate folder', 'arguments': {k: v for k, v in workflow.items() if k != 'type'}, 'complete_after': True}
+                self.registry.collections.terms(workflow['query'])
+                from services.search_query import search_spec
+                search_spec(workflow)
+            else:
                 raise ValueError('Unknown direct workflow')
-            action = {'kind': 'tool', 'tool': 'files_collect', 'summary': 'Gather related files into a separate folder',
-                      'arguments': {'query': workflow['query'], 'destination': workflow['destination']}, 'complete_after': True}
             self.registry.validate(action, task)
-            self.registry.collections.terms(workflow['query'])
-            allowed = auto_outputs and 'files' in scopes
+            allowed = (workflow['type'] == 'index' or auto_outputs) and 'files' in scopes
             task['pending'] = {**action, 'id': uuid.uuid4().hex, 'approved': allowed}
             task['state'] = 'READY' if allowed else 'APPROVAL'
         with self.cv:
@@ -166,8 +193,9 @@ class Runtime:
         for task in self.tasks.values():
             if task['state'] not in ('READY', 'RECOVERY') or task['retry_at'] > now:
                 continue
-            resource = self.registry.resource(task.get('pending'))
-            if resource not in self.locks:
+            if any(self.tasks.get(i, {}).get('state') != 'COMPLETED' for i in task.get('depends_on', [])):
+                continue
+            if self.resource_slot(task) is not None:
                 available.append(task)
         if not available:
             return None
@@ -184,6 +212,67 @@ class Runtime:
             self.policy, self.reason = 'priority + round robin', 'Highest priority first; equal priorities alternate at each checkpoint'
         return selected
 
+    def resource_slot(self, task):
+        """Bounded read/model concurrency; file writes exclude all file readers."""
+        execution = self.config.execution
+        limit = self._worker_override or execution['workers']
+        if execution['adaptive']:
+            now = time.monotonic()
+            if now - self._host_sample[0] > 5:
+                try:
+                    import psutil
+                    self._host_sample = (now, psutil.virtual_memory().percent)
+                except ImportError:
+                    self._host_sample = (now, 0)
+            if self._host_sample[1] >= 90:
+                limit = 1
+        if len(self.locks) >= limit:
+            return None
+        action = task.get('pending')
+        base = self.registry.resource(action)
+        if action is None:
+            # Keep the old resource identity for the first slot.
+            names = ['local-model'] + [f'local-model:{i}' for i in range(1, execution['model_slots'])]
+        elif base == 'filesystem' and not self.registry.tools[action['tool']]['writes']:
+            if 'filesystem' in self.locks:
+                return None
+            readers = [owner for key, owner in self.locks.items() if key.startswith('filesystem-read:')]
+            # A read-many action uses its own bounded pool: reserve the read lane
+            # so several such pools cannot multiply the configured concurrency.
+            if readers and (action['tool'] == 'files_read_many' or any((self.tasks.get(owner, {}).get('pending') or {}).get('tool') == 'files_read_many' for owner in readers)):
+                return None
+            names = [f'filesystem-read:{i}' for i in range(execution['read_slots'])]
+        else:
+            if base == 'filesystem' and any(k.startswith('filesystem-read:') for k in self.locks):
+                return None
+            names = [base]
+        return next((name for name in names if name not in self.locks), None)
+
+    def delete_history(self, ids, remove_uploads=False):
+        if not isinstance(ids, list) or not ids or len(ids) > 1000 or any(not isinstance(i, str) for i in ids):
+            raise ValueError('Choose completed intents to delete')
+        with self.cv:
+            targets = [self.tasks[i] for i in set(ids) if i in self.tasks]
+            if any(t['state'] not in TERMINAL for t in targets):
+                raise ValueError('Cancel or complete active intents before deleting their history')
+            if any(set(t.get('depends_on', [])) & set(ids) for t in self.tasks.values() if t['id'] not in ids):
+                raise ValueError('Other intents depend on this history. Delete their history first.')
+            candidates = {a['id'] for t in targets for a in t.get('attachments', [])}
+            retained = {a['id'] for t in self.tasks.values() if t['id'] not in ids for a in t.get('attachments', [])}
+            with self.db:
+                for t in targets:
+                    self.db.execute('DELETE FROM events WHERE intent_id=?', (t['id'],))
+                    self.db.execute('DELETE FROM processes WHERE id=?', (t['id'],))
+            for t in targets:
+                del self.tasks[t['id']]
+            self.revision += 1
+            self.cv.notify_all()
+            if remove_uploads:
+                for ident in candidates - retained:
+                    self.registry.knowledge.forget([self.uploads.resolve([{'id': ident}])[0]['path']])
+                    self.uploads.remove(ident)
+            return {'deleted': len(targets), 'original_files_preserved': True}
+
     def tick(self):
         """Dispatch one quantum. Also usable synchronously in deterministic tests."""
         with self.cv:
@@ -192,25 +281,37 @@ class Runtime:
             task = self._choose()
             if not task:
                 return False
-            resource = self.registry.resource(task.get('pending'))
+            resource = self.resource_slot(task)
             self.locks[resource] = task['id']
             task['state'] = 'RUNNING'
             task['last_dispatch'] = time.time()
             task['active'] = task['pending']['tool'] if task['pending'] else 'Planning next action'
             self._save(task, 'dispatch', task['active'])
             snapshot = copy.deepcopy(task)
+            snapshot['connections'] = self.google.status()
         start = time.monotonic()
         try:
             pending = snapshot['pending']
             if pending:
                 # Authorization is checked at the dispatch boundary, independently of the model.
                 spec = self.registry.validate(pending, snapshot)
+                if pending.get('authorization') == 'explicit_email_request':
+                    from services.mail_policy import authorize_send
+                    if not authorize_send(snapshot, pending):
+                        raise ValueError('The email no longer matches the user request; review before sending')
                 if not pending.get('approved') and (spec['writes'] or spec['scope'] not in snapshot['scopes']):
                     raise ValueError('This capability has no approval')
                 result = self.registry.execute(pending, snapshot)
-                outcome = ('progress' if pending['tool'] in ('files_collect', 'files_find_related') and isinstance(result, dict) and result.get('status') == 'scanning' else 'result', result)
+                outcome = ('progress' if pending['tool'] in ('files_collect', 'files_find_related', 'knowledge_index') and isinstance(result, dict) and result.get('status') == 'scanning' else 'result', result)
             else:
                 action = self.planner.decide(snapshot, self.registry.catalog())
+                from services.contracts import validate_completion
+                validate_completion(snapshot, action)
+                if action['kind'] == 'ask':
+                    import re
+                    if re.search(r'\b(?:password|app password|client secret|access token|authorization code)\b', action.get('summary', ''), re.I):
+                        from services.connections import ConnectionError
+                        raise ConnectionError('Account authentication belongs in Connections. Gmail uses Google sign-in; never enter your password in intent chat.')
                 if action['kind'] == 'tool':
                     self.registry.validate(action, snapshot)
                 outcome = ('action', action)
@@ -229,7 +330,19 @@ class Runtime:
                 if not pending:
                     task['history'].append({'planner_error': task['error'],
                                             'instruction': 'Correct the next action using the capability schema.'})
-                if pending and self.registry.tools[pending['tool']]['writes']:
+                from services.summary_policy import PlanCorrection
+                if isinstance(value, PlanCorrection):
+                    if pending:
+                        task['history'].append({'planner_error': task['error'], 'instruction': 'Correct the next action; no external action was attempted.'})
+                    task['pending'] = None
+                    task['state'] = 'RECOVERY' if task['attempts'] < 3 else 'BLOCKED'
+                    task['retry_at'] = time.time() + 2 ** task['attempts'] if task['state'] == 'RECOVERY' else 0
+                elif pending and pending['tool'] in ('gmail_send', 'gmail_draft') and getattr(value, 'request_rejected', False):
+                    task['state'] = 'BLOCKED'
+                    task['error'] += ' Gmail rejected this request; it was not sent or saved.'
+                    task['history'].append({'action': pending, 'observation': {'status': 'rejected', 'http_status': value.status, 'message': task['error']}})
+                    task['pending'] = None
+                elif pending and self.registry.tools[pending['tool']]['writes']:
                     task['state'] = 'REVIEW'
                     task['error'] += ' The action may have partially completed. Check the destination before retrying.'
                 elif getattr(value, 'retryable', False) and task['attempts'] < 3:
@@ -258,6 +371,10 @@ class Runtime:
                         task['answer'] = 'No related files were found. ' + value.get('note', '')
                     elif isinstance(value, dict) and value.get('artifact'):
                         task['answer'] = 'Completed successfully. Saved: ' + value['artifact']
+                    elif pending['tool'] == 'gmail_send':
+                        task['answer'] = f"Email sent to {pending['arguments']['to']}.\nSubject: {pending['arguments']['subject']}"
+                    elif pending['tool'] == 'knowledge_index':
+                        task['answer'] = f"Knowledge index updated: {value['extracted']} documents indexed, {value['cache_hits']} unchanged, {value['skipped_or_unreadable']} skipped." + (' Entry limit reached; index narrower folders to complete coverage.' if value.get('truncated') else '')
                     else:
                         task['answer'] = json.dumps(value, ensure_ascii=False)[:24000]
                 self._save(task, 'checkpoint', pending['tool'] + ' completed; result committed')
@@ -272,6 +389,11 @@ class Runtime:
                     spec = self.registry.tools[value['tool']]
                     permitted_output = task.get('auto_outputs', False) and (value['tool'] == 'document_export' or
                         (value['tool'] == 'files_collect' and 'files' in task['scopes']))
+                    from services.mail_policy import authorize_send
+                    permitted_email = authorize_send(task, value)
+                    if permitted_email:
+                        value['authorization'] = 'explicit_email_request'
+                    permitted_output = permitted_output or permitted_email
                     task['pending'] = {**value, 'id': uuid.uuid4().hex, 'approved': permitted_output}
                     task['state'] = 'APPROVAL' if (spec['writes'] or spec['scope'] not in task['scopes']) and not permitted_output else 'READY'
                 if task['turns'] >= task['max_turns'] and task['state'] not in TERMINAL:
@@ -298,6 +420,12 @@ class Runtime:
                     raise ValueError('Approval is stale; refresh the intent')
                 task['pending']['approved'] = True
                 task['state'] = 'READY'
+            elif action == 'pin':
+                task['pinned'] = bool(data.get('pinned'))
+            elif action == 'priority':
+                if data.get('priority') not in ('LOW', 'NORMAL', 'HIGH'):
+                    raise ValueError('Choose a valid priority')
+                task['priority'] = data['priority']
             elif action == 'deny' and state == 'APPROVAL':
                 if data.get('action_id') != task['pending']['id']:
                     raise ValueError('Approval is stale; refresh the intent')
@@ -318,6 +446,8 @@ class Runtime:
             elif action == 'resume' and state in ('PAUSED', 'BLOCKED'):
                 if task['turns'] >= task['max_turns']:
                     raise ValueError('Turn budget exhausted; start a narrower goal')
+                if state == 'BLOCKED' and not task.get('pending') and task['history'] and isinstance(task['history'][-1].get('observation'), dict) and task['history'][-1]['observation'].get('status') == 'rejected':
+                    task['history'].append({'user_control': 'resume', 'after_rejected_request': True})
                 task['state'], task['pause_requested'], task['attempts'], task['retry_at'] = 'READY', False, 0, 0
             elif action == 'skip' and state in ('BLOCKED', 'REVIEW'):
                 task['history'].append({'action': task['pending'], 'observation': 'User skipped this action; its result is not confirmed. ' + task['error']})
@@ -349,12 +479,15 @@ class Runtime:
                                 result[key + '_total'] = len(result[key])
                                 result[key] = result[key][:50]
                 item['deadline_missed'] = bool(t['deadline'] and (t['updated_at'] if t['state'] in TERMINAL else time.time()) > t['deadline'])
+                from services.contracts import contract_status
+                item['contract'] = contract_status(t)
+                item['waiting_for'] = [i for i in t.get('depends_on', []) if self.tasks.get(i, {}).get('state') != 'COMPLETED']
                 tasks.append(item)
             events = [{'seq': r[0], 'intent_id': r[1], 'timestamp': r[2], 'kind': r[3], 'message': r[4]}
                       for r in self.db.execute('SELECT * FROM events ORDER BY seq DESC LIMIT 150')]
             return {'revision': self.revision, 'intents': tasks, 'events': events,
                     'scheduler': {'policy': self.policy, 'reason': self.reason, 'quantum': 'one decision or capability call'},
-                    'resources': {'workers': self.worker_count, 'active': len(self.locks), 'locks': dict(self.locks)},
+                    'resources': {'workers': self.config.execution['workers'], 'active': len(self.locks), 'locks': dict(self.locks), 'memory_throttled': self.config.execution['adaptive'] and self._host_sample[1] >= 90},
                     'config': self.config.public(), 'google': self.google.status(),
                     'capabilities': self.registry.catalog()}
 
@@ -364,7 +497,7 @@ class Runtime:
                 if not self.tick():
                     with self.cv:
                         self.cv.wait(timeout=0.5)
-        for index in range(self.worker_count):
+        for index in range(8):
             thread = threading.Thread(target=worker, name=f'intent-worker-{index}', daemon=True)
             self.threads.append(thread)
             thread.start()

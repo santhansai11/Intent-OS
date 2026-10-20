@@ -1,0 +1,4445 @@
+{
+  "dataset": "MS MARCO passage ranking v1",
+  "engine": "SQLite FTS5 BM25",
+  "queries_sha256": "7b1e976ff8dc33337955b9adfdabf0af04c995f0a9b7334031e47d16a1c19770",
+  "qrels_sha256": "2e6e5289b5d6313f733d398490bc14bfbdcfc3d301e9d700d889c3b8fb84ba3c",
+  "manifest": {
+    "dataset": "msmarco",
+    "name": "MS MARCO passages",
+    "total_records": 8841823,
+    "source": "https://github.com/microsoft/msmarco/blob/master/Datasets.md",
+    "archive": "https://msmarco.z22.web.core.windows.net/msmarcoranking/collection.tar.gz",
+    "release": "Passage ranking v1",
+    "terms": "Microsoft research dataset terms apply; see source and cite Nguyen et al. (2016).",
+    "records": 1000000,
+    "requested_limit": 1000000,
+    "selection": "First N valid unique records in archive order; not a random sample",
+    "subset_sha256": "27691cdc7f73f0a4de040b2158280cca2b135ce7979d03be0e9a1d66135ff3a8",
+    "source_headers": {
+      "ETag": "\"0x8DBE166D3DC101A\"",
+      "Last-Modified": "Thu, 09 Nov 2023 20:59:56 GMT"
+    },
+    "input": "official HTTPS archive",
+    "imported_utc": "2026-10-16T17:12:06.430728+00:00",
+    "index_seconds": 401.377,
+    "engine": "SQLite FTS5 BM25; no embeddings",
+    "skipped_members": 0,
+    "skipped_records": 0,
+    "truncated_records": 0
+  },
+  "queries_available": 101093,
+  "queries_with_positive_in_subset": 1780,
+  "queries_without_positive_in_subset": 99313,
+  "queries_evaluated": 200,
+  "query_selection": "First eligible query IDs in lexical order from official development queries",
+  "mrr_at_10": 0.13498412698412698,
+  "recall_at_10": 0.345,
+  "hit_at_10": 0.345,
+  "median_latency_ms": 1107.045,
+  "p95_latency_ms": 2505.84,
+  "limitations": "Archive-prefix corpus; conditional subset evaluation, not a full-corpus leaderboard score. Development queries only, no held-out test claim. Sparse judgments; no generation accuracy, hybrid retrieval, scheduler, permissions or recovery measurement. Single run, warm/cold cache not controlled.",
+  "results": [
+    {
+      "query_id": "1000086",
+      "query": "where is whitefish located",
+      "relevant_in_subset": [
+        "770150"
+      ],
+      "returned_ids": [
+        "770158",
+        "770152",
+        "770150",
+        "770151",
+        "770157",
+        "809554",
+        "753513",
+        "253730",
+        "770154",
+        "398187"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 3966.22
+    },
+    {
+      "query_id": "1000584",
+      "query": "where is your coccyx",
+      "relevant_in_subset": [
+        "171993"
+      ],
+      "returned_ids": [
+        "963325",
+        "806251",
+        "540328",
+        "806254",
+        "540327",
+        "806256",
+        "447897",
+        "743551",
+        "454339",
+        "540325"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1294.21
+    },
+    {
+      "query_id": "1000628",
+      "query": "where is your heart location",
+      "relevant_in_subset": [
+        "821029"
+      ],
+      "returned_ids": [
+        "747878",
+        "405074",
+        "702945",
+        "303370",
+        "821033",
+        "833681",
+        "46494",
+        "522051",
+        "701625",
+        "264168"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1468.66
+    },
+    {
+      "query_id": "1001810",
+      "query": "where are located the central chemoreceptors and the peripheral chemoreceptors for the breathing control process?",
+      "relevant_in_subset": [
+        "414827"
+      ],
+      "returned_ids": [
+        "414828",
+        "414821",
+        "414824",
+        "414823",
+        "516373",
+        "957239",
+        "329133",
+        "414827",
+        "414826",
+        "555959"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 3230.98
+    },
+    {
+      "query_id": "1001926",
+      "query": "where are bacteria found?",
+      "relevant_in_subset": [
+        "321526"
+      ],
+      "returned_ids": [
+        "654987",
+        "784688",
+        "584573",
+        "985220",
+        "937684",
+        "624010",
+        "624008",
+        "985216",
+        "349185",
+        "624011"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 841.62
+    },
+    {
+      "query_id": "1002273",
+      "query": "where was donald trump from",
+      "relevant_in_subset": [
+        "688137"
+      ],
+      "returned_ids": [
+        "566321",
+        "377727",
+        "846723",
+        "130891",
+        "688143",
+        "688146",
+        "519581",
+        "918167",
+        "966675",
+        "66078"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1037.92
+    },
+    {
+      "query_id": "1002750",
+      "query": "where was julius caesar killed in rome",
+      "relevant_in_subset": [
+        "943349"
+      ],
+      "returned_ids": [
+        "53080",
+        "629973",
+        "53083",
+        "53081",
+        "717444",
+        "53084",
+        "260568",
+        "306177",
+        "629971",
+        "260561"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1607.76
+    },
+    {
+      "query_id": "1003173",
+      "query": "where was pom klementieff born?abcdefghijk",
+      "relevant_in_subset": [
+        "27343"
+      ],
+      "returned_ids": [
+        "27345",
+        "27342",
+        "27344",
+        "27343",
+        "27341",
+        "27340",
+        "60399",
+        "60400",
+        "27338",
+        "27339"
+      ],
+      "reciprocal_rank_at_10": 0.25,
+      "recall_at_10": 1.0,
+      "latency_ms": 485.65
+    },
+    {
+      "query_id": "1003182",
+      "query": "where was pom klementieff born?hhhhhh",
+      "relevant_in_subset": [
+        "27344"
+      ],
+      "returned_ids": [
+        "27345",
+        "27342",
+        "27344",
+        "27343",
+        "27341",
+        "27340",
+        "60399",
+        "60400",
+        "27338",
+        "27339"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 738.23
+    },
+    {
+      "query_id": "1003198",
+      "query": "where was pom klementieff born?sssssssssssssssssssssssssssssssss",
+      "relevant_in_subset": [
+        "27338"
+      ],
+      "returned_ids": [
+        "27345",
+        "27342",
+        "27344",
+        "27343",
+        "27341",
+        "27340",
+        "60399",
+        "60400",
+        "27338",
+        "27339"
+      ],
+      "reciprocal_rank_at_10": 0.1111111111111111,
+      "recall_at_10": 1.0,
+      "latency_ms": 565.74
+    },
+    {
+      "query_id": "1003718",
+      "query": "when is the deadline for tax return",
+      "relevant_in_subset": [
+        "400128"
+      ],
+      "returned_ids": [
+        "58573",
+        "416358",
+        "934078",
+        "891345",
+        "698439",
+        "76296",
+        "73504",
+        "934074",
+        "712309",
+        "73502"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2334.36
+    },
+    {
+      "query_id": "100433",
+      "query": "cost calculator for heat pump install",
+      "relevant_in_subset": [
+        "788547"
+      ],
+      "returned_ids": [
+        "791495",
+        "119345",
+        "788548",
+        "100908",
+        "666153",
+        "870116",
+        "100911",
+        "870112",
+        "257718",
+        "666152"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1013.17
+    },
+    {
+      "query_id": "1004976",
+      "query": "when does credit report derogatory on",
+      "relevant_in_subset": [
+        "102322"
+      ],
+      "returned_ids": [
+        "860351",
+        "673346",
+        "102324",
+        "860348",
+        "102322",
+        "673351",
+        "679306",
+        "860350",
+        "673353",
+        "673350"
+      ],
+      "reciprocal_rank_at_10": 0.2,
+      "recall_at_10": 1.0,
+      "latency_ms": 962.89
+    },
+    {
+      "query_id": "1005371",
+      "query": "which antimicrobial substances reduce viral replication in an infected cells",
+      "relevant_in_subset": [
+        "550772"
+      ],
+      "returned_ids": [
+        "810146",
+        "810150",
+        "739737",
+        "808075",
+        "550771",
+        "188290",
+        "802416",
+        "691634",
+        "771199",
+        "550772"
+      ],
+      "reciprocal_rank_at_10": 0.1,
+      "recall_at_10": 1.0,
+      "latency_ms": 1570.58
+    },
+    {
+      "query_id": "1005500",
+      "query": "which are the organs inside of our body",
+      "relevant_in_subset": [
+        "394092"
+      ],
+      "returned_ids": [
+        "976915",
+        "413818",
+        "413820",
+        "552010",
+        "494751",
+        "573799",
+        "581929",
+        "573212",
+        "59266",
+        "712067"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1789.12
+    },
+    {
+      "query_id": "1005629",
+      "query": "when did wwe raw go live",
+      "relevant_in_subset": [
+        "540316"
+      ],
+      "returned_ids": [
+        "61940",
+        "61935",
+        "804131",
+        "61937",
+        "540316",
+        "939736",
+        "61943",
+        "61938",
+        "98014",
+        "61936"
+      ],
+      "reciprocal_rank_at_10": 0.2,
+      "recall_at_10": 1.0,
+      "latency_ms": 462.65
+    },
+    {
+      "query_id": "1005787",
+      "query": "which baby graced the first edition",
+      "relevant_in_subset": [
+        "815012"
+      ],
+      "returned_ids": [
+        "235688",
+        "54870",
+        "815012",
+        "649872",
+        "897899",
+        "454509",
+        "552083",
+        "815011",
+        "15829",
+        "235694"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 1610.39
+    },
+    {
+      "query_id": "1005853",
+      "query": "when did the victorian poetry era end",
+      "relevant_in_subset": [
+        "203363"
+      ],
+      "returned_ids": [
+        "830992",
+        "644177",
+        "54184",
+        "447361",
+        "830988",
+        "363599",
+        "672939",
+        "447355",
+        "709701",
+        "937751"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1308.23
+    },
+    {
+      "query_id": "1006287",
+      "query": "when did puff the magic dragon debut",
+      "relevant_in_subset": [
+        "21751"
+      ],
+      "returned_ids": [
+        "21753",
+        "21754",
+        "21752",
+        "284272",
+        "21751",
+        "284267",
+        "222732",
+        "649558",
+        "98635",
+        "425683"
+      ],
+      "reciprocal_rank_at_10": 0.2,
+      "recall_at_10": 1.0,
+      "latency_ms": 1167.18
+    },
+    {
+      "query_id": "1006699",
+      "query": "when did italy declare war on usa?",
+      "relevant_in_subset": [
+        "253524"
+      ],
+      "returned_ids": [
+        "253524",
+        "270841",
+        "112049",
+        "663482",
+        "2515",
+        "253528",
+        "686455",
+        "556240",
+        "993607",
+        "309317"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 602.57
+    },
+    {
+      "query_id": "1006721",
+      "query": "when did internet explorer search engine come out",
+      "relevant_in_subset": [
+        "162215"
+      ],
+      "returned_ids": [
+        "957597",
+        "957591",
+        "522041",
+        "493232",
+        "66905",
+        "506501",
+        "715264",
+        "522042",
+        "96773",
+        "522034"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 390.67
+    },
+    {
+      "query_id": "1006829",
+      "query": "when did george washington do before he became president",
+      "relevant_in_subset": [
+        "704363"
+      ],
+      "returned_ids": [
+        "762786",
+        "872530",
+        "34852",
+        "634890",
+        "872229",
+        "748322",
+        "704364",
+        "516254",
+        "376902",
+        "269295"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 470.55
+    },
+    {
+      "query_id": "1007126",
+      "query": "which coffee roast has highest caffeine",
+      "relevant_in_subset": [
+        "95968"
+      ],
+      "returned_ids": [
+        "893271",
+        "383628",
+        "644883",
+        "973565",
+        "893272",
+        "966868",
+        "394397",
+        "95968",
+        "394396",
+        "472617"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 459.02
+    },
+    {
+      "query_id": "100758",
+      "query": "cost for a passport",
+      "relevant_in_subset": [
+        "268774"
+      ],
+      "returned_ids": [
+        "822475",
+        "822473",
+        "822476",
+        "268778",
+        "268779",
+        "842038",
+        "806843",
+        "500246",
+        "261892",
+        "141435"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 922.62
+    },
+    {
+      "query_id": "1007677",
+      "query": "when am i getting my refund",
+      "relevant_in_subset": [
+        "257616"
+      ],
+      "returned_ids": [
+        "686115",
+        "282506",
+        "398806",
+        "783982",
+        "433953",
+        "783984",
+        "276419",
+        "37504",
+        "641256",
+        "69949"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 435.25
+    },
+    {
+      "query_id": "1007906",
+      "query": "which county is long beach in",
+      "relevant_in_subset": [
+        "229750"
+      ],
+      "returned_ids": [
+        "481763",
+        "423761",
+        "925515",
+        "423762",
+        "229756",
+        "423755",
+        "925514",
+        "207170",
+        "809701",
+        "889793"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 933.25
+    },
+    {
+      "query_id": "1008006",
+      "query": "which county isle of palms fl",
+      "relevant_in_subset": [
+        "920759"
+      ],
+      "returned_ids": [
+        "920753",
+        "920759",
+        "920756",
+        "920755",
+        "920754",
+        "920757",
+        "920758",
+        "206048",
+        "36000",
+        "920752"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 842.44
+    },
+    {
+      "query_id": "1008017",
+      "query": "which court are included in the judicial branch",
+      "relevant_in_subset": [
+        "345099"
+      ],
+      "returned_ids": [
+        "246800",
+        "723983",
+        "14962",
+        "367405",
+        "768677",
+        "222743",
+        "345105",
+        "262093",
+        "345101",
+        "312492"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1105.18
+    },
+    {
+      "query_id": "1008167",
+      "query": "which cycle includes bacteria taking gas from the atmosphere and converting it into a material that plants can absorb through root systems",
+      "relevant_in_subset": [
+        "34489"
+      ],
+      "returned_ids": [
+        "35884",
+        "916849",
+        "312391",
+        "916848",
+        "916847",
+        "914806",
+        "916844",
+        "79662",
+        "917111",
+        "60016"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2212.94
+    },
+    {
+      "query_id": "1008279",
+      "query": "which depreciation method is most common for financial reporting purposes",
+      "relevant_in_subset": [
+        "836719"
+      ],
+      "returned_ids": [
+        "47693",
+        "689151",
+        "255271",
+        "481881",
+        "656251",
+        "855442",
+        "255275",
+        "97161",
+        "877681",
+        "396455"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1133.05
+    },
+    {
+      "query_id": "1008459",
+      "query": "which direction ceiling fan should turn",
+      "relevant_in_subset": [
+        "668575"
+      ],
+      "returned_ids": [
+        "915441",
+        "353260",
+        "789770",
+        "668569",
+        "789774",
+        "789772",
+        "668573",
+        "353264",
+        "668574",
+        "353261"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 375.18
+    },
+    {
+      "query_id": "1008606",
+      "query": "which diseases or disorders affect the brain",
+      "relevant_in_subset": [
+        "775075"
+      ],
+      "returned_ids": [
+        "696186",
+        "663175",
+        "696184",
+        "985053",
+        "962627",
+        "479308",
+        "423838",
+        "865192",
+        "895363",
+        "94448"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1165.36
+    },
+    {
+      "query_id": "1008670",
+      "query": "what's the state abbreviation for alabama",
+      "relevant_in_subset": [
+        "275155"
+      ],
+      "returned_ids": [
+        "275155",
+        "626351",
+        "275154",
+        "473388",
+        "969419",
+        "103811",
+        "689480",
+        "777967",
+        "861423",
+        "570085"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1334.62
+    },
+    {
+      "query_id": "1008770",
+      "query": "what's the normal range for inr",
+      "relevant_in_subset": [
+        "796808"
+      ],
+      "returned_ids": [
+        "465415",
+        "278204",
+        "718591",
+        "709477",
+        "465413",
+        "465411",
+        "526703",
+        "709476",
+        "651005",
+        "718589"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1373.29
+    },
+    {
+      "query_id": "1008914",
+      "query": "what's the meaning of rescue",
+      "relevant_in_subset": [
+        "818252"
+      ],
+      "returned_ids": [
+        "818251",
+        "818256",
+        "994071",
+        "994064",
+        "818250",
+        "629665",
+        "120855",
+        "745589",
+        "363261",
+        "818249"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1242.73
+    },
+    {
+      "query_id": "1009382",
+      "query": "what's tee's",
+      "relevant_in_subset": [
+        "201872"
+      ],
+      "returned_ids": [
+        "465773",
+        "876621",
+        "465771",
+        "57359",
+        "465772",
+        "201872",
+        "505028",
+        "876624",
+        "876627",
+        "246430"
+      ],
+      "reciprocal_rank_at_10": 0.16666666666666666,
+      "recall_at_10": 1.0,
+      "latency_ms": 489.3
+    },
+    {
+      "query_id": "1009737",
+      "query": "what's a showroom",
+      "relevant_in_subset": [
+        "506853"
+      ],
+      "returned_ids": [
+        "506859",
+        "196270",
+        "267416",
+        "18565",
+        "445560",
+        "196274",
+        "853184",
+        "577846",
+        "506855",
+        "599529"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 860.73
+    },
+    {
+      "query_id": "1010123",
+      "query": "which geographic factor influenced the development of independent city-states in ancient greece",
+      "relevant_in_subset": [
+        "717688"
+      ],
+      "returned_ids": [
+        "717689",
+        "717688",
+        "344896",
+        "336901",
+        "949456",
+        "512301",
+        "344901",
+        "344895",
+        "892519",
+        "579682"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1246.98
+    },
+    {
+      "query_id": "1011176",
+      "query": "which is a natural cause of soil erosion?",
+      "relevant_in_subset": [
+        "419811"
+      ],
+      "returned_ids": [
+        "730176",
+        "978142",
+        "421153",
+        "310789",
+        "328246",
+        "117065",
+        "688371",
+        "419811",
+        "993573",
+        "730172"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 1358.09
+    },
+    {
+      "query_id": "1011860",
+      "query": "which is stronger hydrocodone or oxycodone",
+      "relevant_in_subset": [
+        "486011"
+      ],
+      "returned_ids": [
+        "27077",
+        "13973",
+        "486007",
+        "17022",
+        "318991",
+        "17019",
+        "350952",
+        "13977",
+        "17024",
+        "13974"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1183.99
+    },
+    {
+      "query_id": "1011868",
+      "query": "what was the purpose of the iron plow",
+      "relevant_in_subset": [
+        "465103"
+      ],
+      "returned_ids": [
+        "177807",
+        "177810",
+        "465109",
+        "53699",
+        "177809",
+        "177813",
+        "177811",
+        "177805",
+        "177812",
+        "53694"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1257.56
+    },
+    {
+      "query_id": "101206",
+      "query": "cost for lowes to install hot water heater",
+      "relevant_in_subset": [
+        "718619"
+      ],
+      "returned_ids": [
+        "718622",
+        "718620",
+        "490100",
+        "718618",
+        "718614",
+        "718613",
+        "990729",
+        "718619",
+        "306378",
+        "718616"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 938.94
+    },
+    {
+      "query_id": "1012151",
+      "query": "which is the longest vein in the body?",
+      "relevant_in_subset": [
+        "435952"
+      ],
+      "returned_ids": [
+        "748748",
+        "435952",
+        "1756",
+        "690788",
+        "852974",
+        "319891",
+        "158793",
+        "471821",
+        "387169",
+        "499203"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1277.83
+    },
+    {
+      "query_id": "1012331",
+      "query": "what was the function of the us office of war information",
+      "relevant_in_subset": [
+        "3653"
+      ],
+      "returned_ids": [
+        "3653",
+        "900784",
+        "900785",
+        "900783",
+        "3656",
+        "71605",
+        "439938",
+        "372905",
+        "527472",
+        "303942"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1266.57
+    },
+    {
+      "query_id": "1012417",
+      "query": "what was the date of the declaration of independence",
+      "relevant_in_subset": [
+        "621213"
+      ],
+      "returned_ids": [
+        "736430",
+        "480329",
+        "645463",
+        "487105",
+        "258792",
+        "157969",
+        "621212",
+        "420308",
+        "26463",
+        "621217"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1274.75
+    },
+    {
+      "query_id": "10138",
+      "query": "ac replacement cost",
+      "relevant_in_subset": [
+        "279402"
+      ],
+      "returned_ids": [
+        "808413",
+        "139342",
+        "326078",
+        "279402",
+        "904469",
+        "589531",
+        "785370",
+        "785372",
+        "209928",
+        "944651"
+      ],
+      "reciprocal_rank_at_10": 0.25,
+      "recall_at_10": 1.0,
+      "latency_ms": 82.97
+    },
+    {
+      "query_id": "1014092",
+      "query": "what type of tissue is found in the papillary layer",
+      "relevant_in_subset": [
+        "633946"
+      ],
+      "returned_ids": [
+        "931920",
+        "633947",
+        "536434",
+        "753378",
+        "753377",
+        "633949",
+        "475035",
+        "633946",
+        "78671",
+        "121414"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 1502.27
+    },
+    {
+      "query_id": "1014127",
+      "query": "which numbers are used for social security",
+      "relevant_in_subset": [
+        "851836"
+      ],
+      "returned_ids": [
+        "438826",
+        "299977",
+        "21086",
+        "766532",
+        "930022",
+        "459644",
+        "152397",
+        "636905",
+        "929039",
+        "548203"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1075.07
+    },
+    {
+      "query_id": "1015405",
+      "query": "which of the following is unique to cardiac muscle cells?",
+      "relevant_in_subset": [
+        "303148"
+      ],
+      "returned_ids": [
+        "246691",
+        "710389",
+        "571114",
+        "810764",
+        "869613",
+        "520787",
+        "155132",
+        "288292",
+        "810766",
+        "246688"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2952.25
+    },
+    {
+      "query_id": "1015462",
+      "query": "which of the following meats provides the highest concentration of thiamin",
+      "relevant_in_subset": [
+        "175615"
+      ],
+      "returned_ids": [
+        "19465",
+        "903658",
+        "545204",
+        "666329",
+        "724752",
+        "617348",
+        "636871",
+        "175607",
+        "342635",
+        "65771"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2517.17
+    },
+    {
+      "query_id": "1016167",
+      "query": "what type of boundary is formed when mountains",
+      "relevant_in_subset": [
+        "319026"
+      ],
+      "returned_ids": [
+        "623876",
+        "962540",
+        "784806",
+        "859541",
+        "493717",
+        "854177",
+        "859544",
+        "145575",
+        "854180",
+        "855065"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1782.21
+    },
+    {
+      "query_id": "1016547",
+      "query": "which organ system makes red blood cells",
+      "relevant_in_subset": [
+        "66361"
+      ],
+      "returned_ids": [
+        "231565",
+        "322910",
+        "644319",
+        "552011",
+        "234741",
+        "797958",
+        "838949",
+        "704733",
+        "979478",
+        "713232"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1065.36
+    },
+    {
+      "query_id": "1016591",
+      "query": "which organelle is the control center of the cell",
+      "relevant_in_subset": [
+        "643602"
+      ],
+      "returned_ids": [
+        "197640",
+        "643602",
+        "305211",
+        "12607",
+        "563378",
+        "558858",
+        "216504",
+        "977305",
+        "595440",
+        "977301"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 2340.95
+    },
+    {
+      "query_id": "1017190",
+      "query": "what to do with treasury stock in accounting",
+      "relevant_in_subset": [
+        "539042"
+      ],
+      "returned_ids": [
+        "539047",
+        "262078",
+        "262074",
+        "539049",
+        "592092",
+        "539042",
+        "755807",
+        "209892",
+        "539050",
+        "592097"
+      ],
+      "reciprocal_rank_at_10": 0.16666666666666666,
+      "recall_at_10": 1.0,
+      "latency_ms": 2032.57
+    },
+    {
+      "query_id": "101756",
+      "query": "cost of a 2 car cement driveway",
+      "relevant_in_subset": [
+        "369873"
+      ],
+      "returned_ids": [
+        "754413",
+        "755242",
+        "194521",
+        "755243",
+        "630002",
+        "754407",
+        "709067",
+        "597492",
+        "256969",
+        "687910"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2129.94
+    },
+    {
+      "query_id": "1017863",
+      "query": "which president inspired maxwell house for the slogan good to the last drop",
+      "relevant_in_subset": [
+        "5975"
+      ],
+      "returned_ids": [
+        "5977",
+        "5971",
+        "5976",
+        "5975",
+        "5974",
+        "5969",
+        "5970",
+        "590128",
+        "292962",
+        "333813"
+      ],
+      "reciprocal_rank_at_10": 0.25,
+      "recall_at_10": 1.0,
+      "latency_ms": 3022.66
+    },
+    {
+      "query_id": "1017886",
+      "query": "which president is credited with inspiring the maxwell house slogan, good to the last drop",
+      "relevant_in_subset": [
+        "5975"
+      ],
+      "returned_ids": [
+        "5977",
+        "5971",
+        "5976",
+        "5975",
+        "5974",
+        "5969",
+        "5970",
+        "590128",
+        "333813",
+        "350312"
+      ],
+      "reciprocal_rank_at_10": 0.25,
+      "recall_at_10": 1.0,
+      "latency_ms": 3101.14
+    },
+    {
+      "query_id": "1017892",
+      "query": "which president is credited with the inspiration for maxwell's house slogan good to the last drop",
+      "relevant_in_subset": [
+        "5975"
+      ],
+      "returned_ids": [
+        "5971",
+        "5977",
+        "5976",
+        "5975",
+        "5974",
+        "5969",
+        "5970",
+        "747320",
+        "590128",
+        "135179"
+      ],
+      "reciprocal_rank_at_10": 0.25,
+      "recall_at_10": 1.0,
+      "latency_ms": 3091.2
+    },
+    {
+      "query_id": "1018176",
+      "query": "which process is food energy",
+      "relevant_in_subset": [
+        "967445"
+      ],
+      "returned_ids": [
+        "255731",
+        "450725",
+        "339136",
+        "59495",
+        "401317",
+        "86630",
+        "524335",
+        "201235",
+        "791961",
+        "184583"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1510.1
+    },
+    {
+      "query_id": "1019783",
+      "query": "what states made up the union",
+      "relevant_in_subset": [
+        "73242"
+      ],
+      "returned_ids": [
+        "745106",
+        "720111",
+        "720109",
+        "485260",
+        "709536",
+        "344896",
+        "720113",
+        "954365",
+        "625895",
+        "909303"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2233.45
+    },
+    {
+      "query_id": "1020549",
+      "query": "which structures are found in every living cell",
+      "relevant_in_subset": [
+        "195019"
+      ],
+      "returned_ids": [
+        "15541",
+        "245142",
+        "990395",
+        "763709",
+        "666579",
+        "376580",
+        "714886",
+        "990392",
+        "579921",
+        "170118"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2137.57
+    },
+    {
+      "query_id": "1020702",
+      "query": "which sweat glands are found in the axillary region of the body and secrete sweat that contains some fatty acids and proteins?",
+      "relevant_in_subset": [
+        "433492"
+      ],
+      "returned_ids": [
+        "259087",
+        "178646",
+        "178643",
+        "547118",
+        "414746",
+        "926170",
+        "414752",
+        "926172",
+        "414747",
+        "178639"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 3912.8
+    },
+    {
+      "query_id": "1020842",
+      "query": "what should my triglyceride level be",
+      "relevant_in_subset": [
+        "69589"
+      ],
+      "returned_ids": [
+        "69591",
+        "384538",
+        "318470",
+        "298973",
+        "298974",
+        "707344",
+        "82746",
+        "384544",
+        "904164",
+        "904171"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 882.79
+    },
+    {
+      "query_id": "102124",
+      "query": "cost of a ride on a hot air balloon",
+      "relevant_in_subset": [
+        "191929"
+      ],
+      "returned_ids": [
+        "191931",
+        "341288",
+        "191929",
+        "327074",
+        "191928",
+        "699679",
+        "144558",
+        "341283",
+        "341284",
+        "341285"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 2133.37
+    },
+    {
+      "query_id": "1021448",
+      "query": "what role does melatonin play",
+      "relevant_in_subset": [
+        "903779"
+      ],
+      "returned_ids": [
+        "518416",
+        "635587",
+        "762709",
+        "687299",
+        "60503",
+        "235061",
+        "235056",
+        "230100",
+        "483",
+        "97925"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 534.97
+    },
+    {
+      "query_id": "1021874",
+      "query": "which type of fats are healthy",
+      "relevant_in_subset": [
+        "191793",
+        "459363"
+      ],
+      "returned_ids": [
+        "950756",
+        "278674",
+        "755363",
+        "832652",
+        "126156",
+        "379800",
+        "848213",
+        "676583",
+        "825097",
+        "313638"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 5711.13
+    },
+    {
+      "query_id": "1022911",
+      "query": "what part of the integumentary system does scc",
+      "relevant_in_subset": [
+        "844915"
+      ],
+      "returned_ids": [
+        "935962",
+        "820661",
+        "905565",
+        "905564",
+        "610962",
+        "266312",
+        "844915",
+        "127645",
+        "160677",
+        "100955"
+      ],
+      "reciprocal_rank_at_10": 0.14285714285714285,
+      "recall_at_10": 1.0,
+      "latency_ms": 2192.08
+    },
+    {
+      "query_id": "1022991",
+      "query": "what part of the brain holds senses",
+      "relevant_in_subset": [
+        "576486"
+      ],
+      "returned_ids": [
+        "883574",
+        "288070",
+        "288066",
+        "504321",
+        "628344",
+        "376062",
+        "878977",
+        "690500",
+        "599398",
+        "690501"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2181.0
+    },
+    {
+      "query_id": "1024894",
+      "query": "what medications can cause constant urination",
+      "relevant_in_subset": [
+        "668291"
+      ],
+      "returned_ids": [
+        "273958",
+        "273967",
+        "625434",
+        "23362",
+        "463859",
+        "629003",
+        "23357",
+        "444397",
+        "554429",
+        "586253"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 977.88
+    },
+    {
+      "query_id": "1025049",
+      "query": "what means the onset of menses",
+      "relevant_in_subset": [
+        "531291"
+      ],
+      "returned_ids": [
+        "951325",
+        "943612",
+        "131423",
+        "899464",
+        "943618",
+        "773864",
+        "474267",
+        "256866",
+        "773862",
+        "652077"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2757.4
+    },
+    {
+      "query_id": "1025076",
+      "query": "what means d.o. in medicine",
+      "relevant_in_subset": [
+        "902804"
+      ],
+      "returned_ids": [
+        "413040",
+        "414513",
+        "324609",
+        "301981",
+        "301988",
+        "301989",
+        "884413",
+        "343746",
+        "254029",
+        "846198"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1682.92
+    },
+    {
+      "query_id": "1026238",
+      "query": "what kind of tree is a grapefruit grapefruit",
+      "relevant_in_subset": [
+        "808401"
+      ],
+      "returned_ids": [
+        "910433",
+        "433367",
+        "580964",
+        "433363",
+        "475560",
+        "808401",
+        "85487",
+        "725676",
+        "568332",
+        "475563"
+      ],
+      "reciprocal_rank_at_10": 0.16666666666666666,
+      "recall_at_10": 1.0,
+      "latency_ms": 2434.35
+    },
+    {
+      "query_id": "1026359",
+      "query": "who did charles barkley play for",
+      "relevant_in_subset": [
+        "426891"
+      ],
+      "returned_ids": [
+        "426893",
+        "426890",
+        "847125",
+        "18712",
+        "56477",
+        "18713",
+        "426894",
+        "426892",
+        "426891",
+        "953473"
+      ],
+      "reciprocal_rank_at_10": 0.1111111111111111,
+      "recall_at_10": 1.0,
+      "latency_ms": 1363.28
+    },
+    {
+      "query_id": "1026943",
+      "query": "what kind of grades do i need to become a scientist",
+      "relevant_in_subset": [
+        "260759",
+        "924628"
+      ],
+      "returned_ids": [
+        "686822",
+        "254642",
+        "493254",
+        "944547",
+        "397971",
+        "973500",
+        "696922",
+        "716412",
+        "280313",
+        "316227"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1690.93
+    },
+    {
+      "query_id": "1027075",
+      "query": "who discovered the wheel and axle",
+      "relevant_in_subset": [
+        "821945"
+      ],
+      "returned_ids": [
+        "760870",
+        "40598",
+        "659301",
+        "659300",
+        "40607",
+        "132922",
+        "659298",
+        "40599",
+        "367386",
+        "659299"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1840.7
+    },
+    {
+      "query_id": "102732",
+      "query": "cost of battery on prius after warranty",
+      "relevant_in_subset": [
+        "852742"
+      ],
+      "returned_ids": [
+        "124838",
+        "287999",
+        "852743",
+        "288004",
+        "124841",
+        "852738",
+        "288002",
+        "253944",
+        "287996",
+        "253948"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1585.76
+    },
+    {
+      "query_id": "1027373",
+      "query": "what kind of doctor specializes in rehabilitation",
+      "relevant_in_subset": [
+        "89161"
+      ],
+      "returned_ids": [
+        "603646",
+        "944",
+        "701563",
+        "421757",
+        "45537",
+        "995032",
+        "45538",
+        "284956",
+        "70856",
+        "45534"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1325.35
+    },
+    {
+      "query_id": "1027865",
+      "query": "who founded general electric company",
+      "relevant_in_subset": [
+        "996262"
+      ],
+      "returned_ids": [
+        "143372",
+        "99478",
+        "404180",
+        "124034",
+        "404179",
+        "999202",
+        "999199",
+        "278080",
+        "609803",
+        "58816"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 315.15
+    },
+    {
+      "query_id": "1028177",
+      "query": "who has eric hosmer",
+      "relevant_in_subset": [
+        "619032"
+      ],
+      "returned_ids": [
+        "619032",
+        "619031",
+        "619030",
+        "619028",
+        "619035",
+        "53370",
+        "619029",
+        "619027",
+        "931525",
+        "693767"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 430.23
+    },
+    {
+      "query_id": "1028312",
+      "query": "who has the most triple doubles",
+      "relevant_in_subset": [
+        "354668"
+      ],
+      "returned_ids": [
+        "354668",
+        "354675",
+        "506715",
+        "354671",
+        "354672",
+        "67600",
+        "354674",
+        "67601",
+        "8831",
+        "354677"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1130.7
+    },
+    {
+      "query_id": "1029243",
+      "query": "daily protein in",
+      "relevant_in_subset": [
+        "699672"
+      ],
+      "returned_ids": [
+        "944972",
+        "664046",
+        "940886",
+        "325570",
+        "934184",
+        "163042",
+        "706431",
+        "539070",
+        "286525",
+        "502949"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 807.24
+    },
+    {
+      "query_id": "1029413",
+      "query": "what is treatment for sciatic nerve pain",
+      "relevant_in_subset": [
+        "129651"
+      ],
+      "returned_ids": [
+        "129647",
+        "298957",
+        "695829",
+        "129646",
+        "426400",
+        "275197",
+        "904347",
+        "951975",
+        "709044",
+        "821241"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 989.7
+    },
+    {
+      "query_id": "1029622",
+      "query": "what is tls compliance",
+      "relevant_in_subset": [
+        "46431"
+      ],
+      "returned_ids": [
+        "594127",
+        "888597",
+        "888601",
+        "740960",
+        "46426",
+        "46431",
+        "888600",
+        "740966",
+        "30134",
+        "170725"
+      ],
+      "reciprocal_rank_at_10": 0.16666666666666666,
+      "recall_at_10": 1.0,
+      "latency_ms": 760.9
+    },
+    {
+      "query_id": "1029791",
+      "query": "who is albrecht diskont), ?",
+      "relevant_in_subset": [
+        "52862"
+      ],
+      "returned_ids": [
+        "52865",
+        "972867",
+        "972873",
+        "9329",
+        "302417",
+        "203952",
+        "849059",
+        "271330",
+        "490537",
+        "78634"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 815.4
+    },
+    {
+      "query_id": "1030445",
+      "query": "what is the weather in austin texas",
+      "relevant_in_subset": [
+        "578420"
+      ],
+      "returned_ids": [
+        "314725",
+        "984779",
+        "102831",
+        "408976",
+        "16349",
+        "876494",
+        "474886",
+        "800885",
+        "876489",
+        "995023"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1275.83
+    },
+    {
+      "query_id": "1031503",
+      "query": "what is the temperature in dallas late march",
+      "relevant_in_subset": [
+        "984774"
+      ],
+      "returned_ids": [
+        "984781",
+        "180364",
+        "984774",
+        "292823",
+        "984776",
+        "717836",
+        "984777",
+        "15482",
+        "386115",
+        "734305"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 1228.06
+    },
+    {
+      "query_id": "1031570",
+      "query": "what is the temperature in barce",
+      "relevant_in_subset": [
+        "661460"
+      ],
+      "returned_ids": [
+        "538960",
+        "923291",
+        "64401",
+        "909310",
+        "912765",
+        "635910",
+        "912764",
+        "542645",
+        "897074",
+        "572972"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1157.29
+    },
+    {
+      "query_id": "1031718",
+      "query": "what is the substance on the surface of a cell that identifies it. it may also stimulate the immune system to release antibodies",
+      "relevant_in_subset": [
+        "996032"
+      ],
+      "returned_ids": [
+        "502315",
+        "397642",
+        "397643",
+        "923490",
+        "303044",
+        "303047",
+        "43262",
+        "211160",
+        "787513",
+        "737188"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 2505.84
+    },
+    {
+      "query_id": "1032106",
+      "query": "what is the specific cause of acne and what occurs",
+      "relevant_in_subset": [
+        "492784"
+      ],
+      "returned_ids": [
+        "286572",
+        "622485",
+        "677296",
+        "875760",
+        "850674",
+        "854694",
+        "210598",
+        "626136",
+        "622483",
+        "436913"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1430.99
+    },
+    {
+      "query_id": "1033126",
+      "query": "what is the recommended amount of taxes to hold out of my social security",
+      "relevant_in_subset": [
+        "97672"
+      ],
+      "returned_ids": [
+        "97405",
+        "303608",
+        "696484",
+        "23287",
+        "525361",
+        "532791",
+        "822101",
+        "546054",
+        "329843",
+        "959830"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1626.94
+    },
+    {
+      "query_id": "1033977",
+      "query": "what is the punic war quizlet",
+      "relevant_in_subset": [
+        "792255"
+      ],
+      "returned_ids": [
+        "663476",
+        "109630",
+        "792254",
+        "792257",
+        "408139",
+        "240327",
+        "792260",
+        "792255",
+        "575839",
+        "20550"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 1187.83
+    },
+    {
+      "query_id": "1034676",
+      "query": "what is the persian ethnic groups language",
+      "relevant_in_subset": [
+        "210366"
+      ],
+      "returned_ids": [
+        "880381",
+        "769432",
+        "619138",
+        "210363",
+        "728587",
+        "210360",
+        "888069",
+        "835302",
+        "842347",
+        "133745"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1133.34
+    },
+    {
+      "query_id": "1034682",
+      "query": "what is the percentage of blood that comes from water",
+      "relevant_in_subset": [
+        "972294"
+      ],
+      "returned_ids": [
+        "993367",
+        "817222",
+        "299312",
+        "27274",
+        "331651",
+        "320728",
+        "898205",
+        "506726",
+        "14990",
+        "836439"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1422.48
+    },
+    {
+      "query_id": "1034869",
+      "query": "what is the onedrive",
+      "relevant_in_subset": [
+        "215002"
+      ],
+      "returned_ids": [
+        "973602",
+        "698322",
+        "6524",
+        "698319",
+        "6525",
+        "720495",
+        "927637",
+        "927644",
+        "6529",
+        "927645"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1085.85
+    },
+    {
+      "query_id": "1035249",
+      "query": "who is leon scott kennedy?",
+      "relevant_in_subset": [
+        "66163"
+      ],
+      "returned_ids": [
+        "66163",
+        "66165",
+        "858356",
+        "1553",
+        "725763",
+        "64476",
+        "477310",
+        "65195",
+        "746681",
+        "612877"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 796.75
+    },
+    {
+      "query_id": "1035610",
+      "query": "what is the name of the cord of connective tissue that connects muscle to bone?",
+      "relevant_in_subset": [
+        "224954"
+      ],
+      "returned_ids": [
+        "224954",
+        "974942",
+        "699961",
+        "675641",
+        "51365",
+        "523516",
+        "675637",
+        "931926",
+        "777839",
+        "300072"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1791.13
+    },
+    {
+      "query_id": "1036177",
+      "query": "who is millicent the cat",
+      "relevant_in_subset": [
+        "640749"
+      ],
+      "returned_ids": [
+        "640749",
+        "640754",
+        "640750",
+        "573927",
+        "640755",
+        "640758",
+        "640751",
+        "960264",
+        "960266",
+        "960270"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1047.78
+    },
+    {
+      "query_id": "1036452",
+      "query": "what is the meaning of second",
+      "relevant_in_subset": [
+        "606920"
+      ],
+      "returned_ids": [
+        "213525",
+        "214986",
+        "213524",
+        "541397",
+        "444369",
+        "548393",
+        "756518",
+        "922334",
+        "547782",
+        "125448"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1250.26
+    },
+    {
+      "query_id": "1036748",
+      "query": "what is the maximum amount you can receive from social security",
+      "relevant_in_subset": [
+        "65802"
+      ],
+      "returned_ids": [
+        "877117",
+        "695247",
+        "922277",
+        "542660",
+        "165381",
+        "695241",
+        "542664",
+        "724036",
+        "272867",
+        "52689"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1344.13
+    },
+    {
+      "query_id": "103675",
+      "query": "cost of dog getting fixed",
+      "relevant_in_subset": [
+        "721289"
+      ],
+      "returned_ids": [
+        "94945",
+        "698973",
+        "820215",
+        "94943",
+        "998317",
+        "998322",
+        "366155",
+        "822502",
+        "998321",
+        "453449"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 901.14
+    },
+    {
+      "query_id": "1036782",
+      "query": "crm finance definition",
+      "relevant_in_subset": [
+        "171535"
+      ],
+      "returned_ids": [
+        "539480",
+        "277429",
+        "551865",
+        "300894",
+        "947677",
+        "41357",
+        "339408",
+        "87277",
+        "41356",
+        "41351"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 97.67
+    },
+    {
+      "query_id": "1039281",
+      "query": "who is the atf under",
+      "relevant_in_subset": [
+        "755523"
+      ],
+      "returned_ids": [
+        "622927",
+        "622930",
+        "622924",
+        "428653",
+        "371311",
+        "371314",
+        "428656",
+        "428650",
+        "140490",
+        "312459"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1122.19
+    },
+    {
+      "query_id": "1039491",
+      "query": "who is the bls",
+      "relevant_in_subset": [
+        "337308"
+      ],
+      "returned_ids": [
+        "508366",
+        "330814",
+        "411356",
+        "206080",
+        "775159",
+        "653741",
+        "832347",
+        "643194",
+        "643193",
+        "173932"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1097.75
+    },
+    {
+      "query_id": "1041050",
+      "query": "who is the most flexible person in the world?",
+      "relevant_in_subset": [
+        "690939"
+      ],
+      "returned_ids": [
+        "690938",
+        "690939",
+        "922383",
+        "915660",
+        "690944",
+        "690941",
+        "730906",
+        "629993",
+        "223138",
+        "542820"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1584.57
+    },
+    {
+      "query_id": "1041963",
+      "query": "who is the target audience",
+      "relevant_in_subset": [
+        "15248"
+      ],
+      "returned_ids": [
+        "15248",
+        "15240",
+        "926073",
+        "399934",
+        "991246",
+        "930722",
+        "729411",
+        "147851",
+        "110090",
+        "60330"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1163.71
+    },
+    {
+      "query_id": "1042118",
+      "query": "what is the current price of etherium?",
+      "relevant_in_subset": [
+        "245700"
+      ],
+      "returned_ids": [
+        "491332",
+        "799913",
+        "444836",
+        "294035",
+        "534056",
+        "108002",
+        "61994",
+        "791726",
+        "679348",
+        "612861"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1304.0
+    },
+    {
+      "query_id": "104217",
+      "query": "cost of garage doors prices",
+      "relevant_in_subset": [
+        "906162"
+      ],
+      "returned_ids": [
+        "297567",
+        "297568",
+        "309026",
+        "993885",
+        "705540",
+        "309033",
+        "297566",
+        "309025",
+        "906162",
+        "97775"
+      ],
+      "reciprocal_rank_at_10": 0.1111111111111111,
+      "recall_at_10": 1.0,
+      "latency_ms": 1169.51
+    },
+    {
+      "query_id": "1042506",
+      "query": "what is the cortana what is the best thing to take for",
+      "relevant_in_subset": [
+        "834442"
+      ],
+      "returned_ids": [
+        "907483",
+        "366206",
+        "358161",
+        "834444",
+        "907484",
+        "457592",
+        "209940",
+        "294513",
+        "177223",
+        "358165"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1559.72
+    },
+    {
+      "query_id": "1042536",
+      "query": "what is the correct definition of ecology",
+      "relevant_in_subset": [
+        "763117"
+      ],
+      "returned_ids": [
+        "771285",
+        "562991",
+        "884068",
+        "976555",
+        "579365",
+        "877097",
+        "631648",
+        "700558",
+        "312778",
+        "429852"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1220.47
+    },
+    {
+      "query_id": "1042752",
+      "query": "what is the colorless, gaseous element that makes up four-fifths of the air",
+      "relevant_in_subset": [
+        "991589"
+      ],
+      "returned_ids": [
+        "980924",
+        "166312",
+        "650570",
+        "711448",
+        "166307",
+        "166309",
+        "126683",
+        "911661",
+        "46302",
+        "991589"
+      ],
+      "reciprocal_rank_at_10": 0.1,
+      "recall_at_10": 1.0,
+      "latency_ms": 1918.89
+    },
+    {
+      "query_id": "1043210",
+      "query": "what is the ccna",
+      "relevant_in_subset": [
+        "764114"
+      ],
+      "returned_ids": [
+        "488691",
+        "444334",
+        "268432",
+        "764107",
+        "488692",
+        "488686",
+        "444337",
+        "764114",
+        "555919",
+        "795901"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 1253.85
+    },
+    {
+      "query_id": "1043432",
+      "query": "who made takis chips",
+      "relevant_in_subset": [
+        "387925"
+      ],
+      "returned_ids": [
+        "387922",
+        "387924",
+        "387925",
+        "222353",
+        "222359",
+        "222355",
+        "222356",
+        "222358",
+        "387923",
+        "222361"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 243.26
+    },
+    {
+      "query_id": "1044460",
+      "query": "what is the average cost of a movie ticket",
+      "relevant_in_subset": [
+        "349063"
+      ],
+      "returned_ids": [
+        "666317",
+        "349059",
+        "666319",
+        "349062",
+        "349060",
+        "349056",
+        "997392",
+        "733835",
+        "656140",
+        "666322"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1504.32
+    },
+    {
+      "query_id": "1044632",
+      "query": "cost per square foot of building a home",
+      "relevant_in_subset": [
+        "67906"
+      ],
+      "returned_ids": [
+        "420275",
+        "420278",
+        "748312",
+        "382819",
+        "924301",
+        "269327",
+        "710838",
+        "111084",
+        "969693",
+        "330589"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1218.88
+    },
+    {
+      "query_id": "1045185",
+      "query": "what is thatch roofing made of",
+      "relevant_in_subset": [
+        "20124"
+      ],
+      "returned_ids": [
+        "768406",
+        "39535",
+        "39536",
+        "39541",
+        "39543",
+        "96737",
+        "107499",
+        "382213",
+        "306568",
+        "882484"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1138.79
+    },
+    {
+      "query_id": "1045260",
+      "query": "what is temp in seattle wa",
+      "relevant_in_subset": [
+        "597407"
+      ],
+      "returned_ids": [
+        "417099",
+        "869837",
+        "382079",
+        "166902",
+        "74810",
+        "166907",
+        "651564",
+        "640848",
+        "80889",
+        "617298"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1279.22
+    },
+    {
+      "query_id": "1045345",
+      "query": "what is tdap vaccinations",
+      "relevant_in_subset": [
+        "750400"
+      ],
+      "returned_ids": [
+        "38769",
+        "766318",
+        "702803",
+        "788368",
+        "560073",
+        "177888",
+        "585265",
+        "812766",
+        "742445",
+        "405363"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 822.83
+    },
+    {
+      "query_id": "1045600",
+      "query": "what is study of abnormal psychology",
+      "relevant_in_subset": [
+        "363652"
+      ],
+      "returned_ids": [
+        "363657",
+        "363650",
+        "492843",
+        "953239",
+        "492845",
+        "492849",
+        "492846",
+        "363658",
+        "363654",
+        "492847"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1108.94
+    },
+    {
+      "query_id": "1045854",
+      "query": "what is spleen enlargement",
+      "relevant_in_subset": [
+        "931239"
+      ],
+      "returned_ids": [
+        "171149",
+        "590474",
+        "590476",
+        "462363",
+        "320600",
+        "927432",
+        "927435",
+        "171145",
+        "576655",
+        "927433"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 857.24
+    },
+    {
+      "query_id": "1046631",
+      "query": "who played evie in descendants",
+      "relevant_in_subset": [
+        "589358"
+      ],
+      "returned_ids": [
+        "573132",
+        "283518",
+        "283520",
+        "283521",
+        "283524",
+        "589358",
+        "283525",
+        "284712",
+        "284709",
+        "430360"
+      ],
+      "reciprocal_rank_at_10": 0.16666666666666666,
+      "recall_at_10": 1.0,
+      "latency_ms": 872.35
+    },
+    {
+      "query_id": "1046637",
+      "query": "what is sandy hook shooting",
+      "relevant_in_subset": [
+        "889750"
+      ],
+      "returned_ids": [
+        "502984",
+        "889745",
+        "889754",
+        "889753",
+        "892839",
+        "892843",
+        "889752",
+        "983311",
+        "230054",
+        "889749"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 823.61
+    },
+    {
+      "query_id": "1046851",
+      "query": "cost of new furnace and installation",
+      "relevant_in_subset": [
+        "324118"
+      ],
+      "returned_ids": [
+        "278234",
+        "324118",
+        "278230",
+        "89826",
+        "159237",
+        "177075",
+        "324125",
+        "324124",
+        "159236",
+        "278232"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1170.59
+    },
+    {
+      "query_id": "1046982",
+      "query": "what is risk management in accounting",
+      "relevant_in_subset": [
+        "298528"
+      ],
+      "returned_ids": [
+        "48650",
+        "505473",
+        "505477",
+        "428838",
+        "159788",
+        "830206",
+        "550407",
+        "700249",
+        "683767",
+        "904427"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1035.14
+    },
+    {
+      "query_id": "1047010",
+      "query": "what is ring around the rosie",
+      "relevant_in_subset": [
+        "654791"
+      ],
+      "returned_ids": [
+        "350616",
+        "350623",
+        "908587",
+        "350621",
+        "654791",
+        "350618",
+        "654794",
+        "654793",
+        "350622",
+        "908594"
+      ],
+      "reciprocal_rank_at_10": 0.2,
+      "recall_at_10": 1.0,
+      "latency_ms": 1219.84
+    },
+    {
+      "query_id": "1047675",
+      "query": "what is provided in home health care",
+      "relevant_in_subset": [
+        "791026"
+      ],
+      "returned_ids": [
+        "263141",
+        "284958",
+        "424680",
+        "381666",
+        "426570",
+        "417101",
+        "17046",
+        "321030",
+        "876192",
+        "17040"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1187.89
+    },
+    {
+      "query_id": "1048360",
+      "query": "what is photosynthesis what organisms perform this reaction and what is the importance of the reaction",
+      "relevant_in_subset": [
+        "289991"
+      ],
+      "returned_ids": [
+        "60733",
+        "536936",
+        "50738",
+        "636038",
+        "973463",
+        "623710",
+        "526935",
+        "623715",
+        "644714",
+        "981049"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1738.09
+    },
+    {
+      "query_id": "1048625",
+      "query": "what is parkland near in florida",
+      "relevant_in_subset": [
+        "143101"
+      ],
+      "returned_ids": [
+        "143108",
+        "143352",
+        "143356",
+        "143101",
+        "143106",
+        "143102",
+        "143350",
+        "143347",
+        "143353",
+        "525632"
+      ],
+      "reciprocal_rank_at_10": 0.25,
+      "recall_at_10": 1.0,
+      "latency_ms": 1019.38
+    },
+    {
+      "query_id": "1048811",
+      "query": "what is organic insomnia",
+      "relevant_in_subset": [
+        "465790"
+      ],
+      "returned_ids": [
+        "465795",
+        "885939",
+        "58553",
+        "546258",
+        "465793",
+        "40708",
+        "249817",
+        "581302",
+        "10344",
+        "147164"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 795.88
+    },
+    {
+      "query_id": "1048825",
+      "query": "what is oregano oil used to treat?",
+      "relevant_in_subset": [
+        "511870"
+      ],
+      "returned_ids": [
+        "511875",
+        "255305",
+        "511869",
+        "578378",
+        "695896",
+        "511877",
+        "511871",
+        "519981",
+        "511873",
+        "357978"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1063.47
+    },
+    {
+      "query_id": "104888",
+      "query": "cost of ipl laser treatments",
+      "relevant_in_subset": [
+        "845871"
+      ],
+      "returned_ids": [
+        "475007",
+        "845865",
+        "845866",
+        "845869",
+        "308614",
+        "979261",
+        "71260",
+        "603346",
+        "870946",
+        "475006"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 988.29
+    },
+    {
+      "query_id": "1049894",
+      "query": "who sang i feel wonderful tonight",
+      "relevant_in_subset": [
+        "22297"
+      ],
+      "returned_ids": [
+        "22303",
+        "22302",
+        "763658",
+        "763659",
+        "22305",
+        "22304",
+        "763661",
+        "763660",
+        "749091",
+        "763657"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 356.09
+    },
+    {
+      "query_id": "105004",
+      "query": "cost of kwh",
+      "relevant_in_subset": [
+        "87373"
+      ],
+      "returned_ids": [
+        "315088",
+        "871784",
+        "483593",
+        "315094",
+        "370319",
+        "664902",
+        "386535",
+        "1687",
+        "743909",
+        "1688"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1025.72
+    },
+    {
+      "query_id": "1050381",
+      "query": "what is my pc xendar",
+      "relevant_in_subset": [
+        "925798"
+      ],
+      "returned_ids": [
+        "853147",
+        "136914",
+        "925585",
+        "925583",
+        "671277",
+        "29111",
+        "71149",
+        "516562",
+        "415963",
+        "525734"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 826.9
+    },
+    {
+      "query_id": "1050837",
+      "query": "what is mizzles disease",
+      "relevant_in_subset": [
+        "934759"
+      ],
+      "returned_ids": [
+        "713078",
+        "915919",
+        "656437",
+        "519796",
+        "418577",
+        "635456",
+        "611403",
+        "882514",
+        "717279",
+        "304590"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 761.35
+    },
+    {
+      "query_id": "1051406",
+      "query": "what is meaning of phrasecome at me, bro?",
+      "relevant_in_subset": [
+        "597801"
+      ],
+      "returned_ids": [
+        "597798",
+        "597801",
+        "597796",
+        "169074",
+        "407026",
+        "169076",
+        "407031",
+        "169075",
+        "597795",
+        "407027"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1305.03
+    },
+    {
+      "query_id": "1051616",
+      "query": "what is magnesium,",
+      "relevant_in_subset": [
+        "142704"
+      ],
+      "returned_ids": [
+        "240252",
+        "556290",
+        "83435",
+        "240251",
+        "142219",
+        "496709",
+        "838302",
+        "376051",
+        "205715",
+        "437897"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1411.31
+    },
+    {
+      "query_id": "1052196",
+      "query": "what is larger kb versus mb",
+      "relevant_in_subset": [
+        "218726"
+      ],
+      "returned_ids": [
+        "981435",
+        "981434",
+        "981438",
+        "615980",
+        "532012",
+        "582935",
+        "615978",
+        "955834",
+        "981436",
+        "981433"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1342.81
+    },
+    {
+      "query_id": "1052347",
+      "query": "who speaks mandarin chinese",
+      "relevant_in_subset": [
+        "92976"
+      ],
+      "returned_ids": [
+        "609073",
+        "374369",
+        "92981",
+        "863052",
+        "92976",
+        "914509",
+        "92973",
+        "525224",
+        "430194",
+        "93759"
+      ],
+      "reciprocal_rank_at_10": 0.2,
+      "recall_at_10": 1.0,
+      "latency_ms": 226.15
+    },
+    {
+      "query_id": "1052363",
+      "query": "cortana when do we change time",
+      "relevant_in_subset": [
+        "256757"
+      ],
+      "returned_ids": [
+        "97885",
+        "834447",
+        "744002",
+        "549758",
+        "155669",
+        "437453",
+        "403622",
+        "242346",
+        "517452",
+        "242353"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 629.18
+    },
+    {
+      "query_id": "1053219",
+      "query": "what is insurance in law",
+      "relevant_in_subset": [
+        "787613"
+      ],
+      "returned_ids": [
+        "104379",
+        "582310",
+        "675673",
+        "800234",
+        "929101",
+        "584363",
+        "450536",
+        "13572",
+        "13577",
+        "631630"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1088.79
+    },
+    {
+      "query_id": "1053469",
+      "query": "what is included in the pns",
+      "relevant_in_subset": [
+        "477074"
+      ],
+      "returned_ids": [
+        "175606",
+        "236038",
+        "824459",
+        "202929",
+        "774787",
+        "690216",
+        "148716",
+        "477074",
+        "236039",
+        "379785"
+      ],
+      "reciprocal_rank_at_10": 0.125,
+      "recall_at_10": 1.0,
+      "latency_ms": 1466.14
+    },
+    {
+      "query_id": "1053565",
+      "query": "what is in mayo",
+      "relevant_in_subset": [
+        "157069"
+      ],
+      "returned_ids": [
+        "276092",
+        "221641",
+        "584574",
+        "817747",
+        "912077",
+        "979032",
+        "628022",
+        "979038",
+        "486103",
+        "742490"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 971.15
+    },
+    {
+      "query_id": "1053598",
+      "query": "what is in a cmp and a bmp",
+      "relevant_in_subset": [
+        "404883"
+      ],
+      "returned_ids": [
+        "404884",
+        "404876",
+        "253498",
+        "244407",
+        "169112",
+        "336111",
+        "443850",
+        "706775",
+        "360405",
+        "516192"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1484.17
+    },
+    {
+      "query_id": "1053767",
+      "query": "what is hypoglycemia? what hormone is involved?",
+      "relevant_in_subset": [
+        "279217"
+      ],
+      "returned_ids": [
+        "273479",
+        "625236",
+        "456025",
+        "279216",
+        "817224",
+        "116799",
+        "815438",
+        "200301",
+        "807254",
+        "496435"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 940.67
+    },
+    {
+      "query_id": "1053992",
+      "query": "who was first u.s president to resign from office",
+      "relevant_in_subset": [
+        "436967"
+      ],
+      "returned_ids": [
+        "59753",
+        "436967",
+        "436970",
+        "436973",
+        "44023",
+        "60752",
+        "189284",
+        "44027",
+        "105873",
+        "972183"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1122.53
+    },
+    {
+      "query_id": "1054100",
+      "query": "what is highest amount in us dollar bill",
+      "relevant_in_subset": [
+        "468467"
+      ],
+      "returned_ids": [
+        "505313",
+        "468467",
+        "468476",
+        "468470",
+        "468471",
+        "415991",
+        "505312",
+        "760108",
+        "465021",
+        "465028"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1057.26
+    },
+    {
+      "query_id": "1055005",
+      "query": "what is fowling?",
+      "relevant_in_subset": [
+        "485694"
+      ],
+      "returned_ids": [
+        "485691",
+        "485693",
+        "485694",
+        "485696",
+        "924532",
+        "900373",
+        "4882",
+        "485692",
+        "485688",
+        "485690"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 775.17
+    },
+    {
+      "query_id": "1055262",
+      "query": "what is fiefdom",
+      "relevant_in_subset": [
+        "775747"
+      ],
+      "returned_ids": [
+        "775744",
+        "775752",
+        "775751",
+        "775750",
+        "775745",
+        "775749",
+        "775746",
+        "411486",
+        "492044",
+        "665982"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 855.97
+    },
+    {
+      "query_id": "1055266",
+      "query": "who was prince phillip",
+      "relevant_in_subset": [
+        "777787"
+      ],
+      "returned_ids": [
+        "56638",
+        "393115",
+        "207589",
+        "207590",
+        "31937",
+        "207585",
+        "33028",
+        "33029",
+        "67335",
+        "78567"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 329.24
+    },
+    {
+      "query_id": "1055884",
+      "query": "who was the first author to use sociology in their writing",
+      "relevant_in_subset": [
+        "67588"
+      ],
+      "returned_ids": [
+        "939314",
+        "628949",
+        "597424",
+        "628956",
+        "242365",
+        "77093",
+        "189062",
+        "378924",
+        "269739",
+        "6790"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1447.71
+    },
+    {
+      "query_id": "1056066",
+      "query": "what is elastic fiber",
+      "relevant_in_subset": [
+        "318592"
+      ],
+      "returned_ids": [
+        "141757",
+        "967643",
+        "318592",
+        "831863",
+        "318590",
+        "539163",
+        "318595",
+        "318594",
+        "318596",
+        "412725"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 833.67
+    },
+    {
+      "query_id": "1056302",
+      "query": "what is dpi on a mouse",
+      "relevant_in_subset": [
+        "426316"
+      ],
+      "returned_ids": [
+        "426667",
+        "426313",
+        "426316",
+        "426317",
+        "145384",
+        "426312",
+        "426318",
+        "426669",
+        "426540",
+        "236657"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 1135.45
+    },
+    {
+      "query_id": "1056713",
+      "query": "what is diazepam prescribed for",
+      "relevant_in_subset": [
+        "460949"
+      ],
+      "returned_ids": [
+        "223090",
+        "606868",
+        "460950",
+        "460948",
+        "442681",
+        "982575",
+        "460953",
+        "610514",
+        "460954",
+        "637003"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 955.65
+    },
+    {
+      "query_id": "1056998",
+      "query": "who was thomas paine",
+      "relevant_in_subset": [
+        "301849"
+      ],
+      "returned_ids": [
+        "301849",
+        "301851",
+        "301853",
+        "152087",
+        "884439",
+        "207376",
+        "301850",
+        "407454",
+        "845031",
+        "207370"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 303.07
+    },
+    {
+      "query_id": "1057102",
+      "query": "what is dba in medicine",
+      "relevant_in_subset": [
+        "402009"
+      ],
+      "returned_ids": [
+        "234586",
+        "234583",
+        "190852",
+        "157573",
+        "881346",
+        "724021",
+        "910252",
+        "910253",
+        "532348",
+        "91558"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 975.67
+    },
+    {
+      "query_id": "105722",
+      "query": "cost of netflix plans",
+      "relevant_in_subset": [
+        "870892"
+      ],
+      "returned_ids": [
+        "590805",
+        "842941",
+        "870899",
+        "579932",
+        "579939",
+        "579934",
+        "590807",
+        "500779",
+        "579935",
+        "870892"
+      ],
+      "reciprocal_rank_at_10": 0.1,
+      "recall_at_10": 1.0,
+      "latency_ms": 896.22
+    },
+    {
+      "query_id": "1057678",
+      "query": "what is cost of a usa stamp",
+      "relevant_in_subset": [
+        "331378"
+      ],
+      "returned_ids": [
+        "519732",
+        "466948",
+        "294032",
+        "749728",
+        "335264",
+        "614600",
+        "420170",
+        "519731",
+        "621649",
+        "527571"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1484.74
+    },
+    {
+      "query_id": "105803",
+      "query": "cost of new tesla s",
+      "relevant_in_subset": [
+        "730330"
+      ],
+      "returned_ids": [
+        "812612",
+        "261667",
+        "16401",
+        "52338",
+        "16407",
+        "954320",
+        "475250",
+        "812611",
+        "633209",
+        "346266"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1026.14
+    },
+    {
+      "query_id": "1058793",
+      "query": "what is certified medical assistant",
+      "relevant_in_subset": [
+        "862014"
+      ],
+      "returned_ids": [
+        "985502",
+        "758330",
+        "985503",
+        "985504",
+        "985496",
+        "985500",
+        "972836",
+        "714247",
+        "856197",
+        "730401"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 786.3
+    },
+    {
+      "query_id": "1058884",
+      "query": "what is causing the sta",
+      "relevant_in_subset": [
+        "533498"
+      ],
+      "returned_ids": [
+        "495118",
+        "495121",
+        "495117",
+        "495120",
+        "495115",
+        "295157",
+        "782923",
+        "496641",
+        "383568",
+        "465907"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1047.91
+    },
+    {
+      "query_id": "105906",
+      "query": "cost of one stamp now",
+      "relevant_in_subset": [
+        "361429"
+      ],
+      "returned_ids": [
+        "614600",
+        "519731",
+        "621649",
+        "698182",
+        "696449",
+        "261942",
+        "649242",
+        "696450",
+        "527578",
+        "294032"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1072.82
+    },
+    {
+      "query_id": "106047",
+      "query": "cost of passport at post office",
+      "relevant_in_subset": [
+        "104039"
+      ],
+      "returned_ids": [
+        "220559",
+        "556570",
+        "127763",
+        "15572",
+        "868232",
+        "141431",
+        "776660",
+        "420521",
+        "420516",
+        "500251"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1025.19
+    },
+    {
+      "query_id": "1061077",
+      "query": "why are some states able to make marijuana legal",
+      "relevant_in_subset": [
+        "290885"
+      ],
+      "returned_ids": [
+        "356555",
+        "845812",
+        "845818",
+        "845814",
+        "552052",
+        "188145",
+        "639198",
+        "845815",
+        "102384",
+        "845811"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1054.13
+    },
+    {
+      "query_id": "1061506",
+      "query": "why biting inside of mouth",
+      "relevant_in_subset": [
+        "812760"
+      ],
+      "returned_ids": [
+        "812758",
+        "959947",
+        "812761",
+        "332266",
+        "432509",
+        "169435",
+        "426445",
+        "678671",
+        "90804",
+        "500794"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1086.24
+    },
+    {
+      "query_id": "106204",
+      "query": "cost of pool intallation",
+      "relevant_in_subset": [
+        "251291"
+      ],
+      "returned_ids": [
+        "100910",
+        "993399",
+        "376147",
+        "868786",
+        "100908",
+        "290484",
+        "376149",
+        "506193",
+        "290483",
+        "100911"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1010.74
+    },
+    {
+      "query_id": "1062606",
+      "query": "what is an npn",
+      "relevant_in_subset": [
+        "911666"
+      ],
+      "returned_ids": [
+        "769657",
+        "553092",
+        "553093",
+        "553090",
+        "620104",
+        "969804",
+        "911666",
+        "824532",
+        "769651",
+        "15529"
+      ],
+      "reciprocal_rank_at_10": 0.14285714285714285,
+      "recall_at_10": 1.0,
+      "latency_ms": 913.62
+    },
+    {
+      "query_id": "1063044",
+      "query": "what is an ethno-state?",
+      "relevant_in_subset": [
+        "257000"
+      ],
+      "returned_ids": [
+        "256995",
+        "256997",
+        "387037",
+        "257003",
+        "256996",
+        "135706",
+        "521044",
+        "785489",
+        "387034",
+        "387039"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 835.72
+    },
+    {
+      "query_id": "1063674",
+      "query": "what is an alcohol leg",
+      "relevant_in_subset": [
+        "94580"
+      ],
+      "returned_ids": [
+        "808519",
+        "98689",
+        "350240",
+        "658761",
+        "232155",
+        "940639",
+        "743063",
+        "422501",
+        "648428",
+        "81661"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 970.08
+    },
+    {
+      "query_id": "1063709",
+      "query": "why did the united states drop the atomic bomb on japan",
+      "relevant_in_subset": [
+        "71485"
+      ],
+      "returned_ids": [
+        "749032",
+        "71485",
+        "749030",
+        "749028",
+        "970508",
+        "818555",
+        "822193",
+        "970504",
+        "540594",
+        "901897"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1264.45
+    },
+    {
+      "query_id": "1063887",
+      "query": "why did urban settings grow during the industrial revolution",
+      "relevant_in_subset": [
+        "592951"
+      ],
+      "returned_ids": [
+        "592951",
+        "592950",
+        "250687",
+        "383047",
+        "21570",
+        "187890",
+        "330717",
+        "281363",
+        "792204",
+        "708144"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1042.97
+    },
+    {
+      "query_id": "1063913",
+      "query": "what is also called a substitution process?casting",
+      "relevant_in_subset": [
+        "639043"
+      ],
+      "returned_ids": [
+        "721134",
+        "288202",
+        "723464",
+        "723462",
+        "721138",
+        "693689",
+        "639042",
+        "736624",
+        "736623",
+        "684034"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1108.91
+    },
+    {
+      "query_id": "1064350",
+      "query": "why do cops need search warrants",
+      "relevant_in_subset": [
+        "450963"
+      ],
+      "returned_ids": [
+        "520390",
+        "520392",
+        "301400",
+        "396088",
+        "446375",
+        "520387",
+        "703479",
+        "395203",
+        "730126",
+        "396087"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 281.36
+    },
+    {
+      "query_id": "1064604",
+      "query": "what is acyclovir prescribed for",
+      "relevant_in_subset": [
+        "994967"
+      ],
+      "returned_ids": [
+        "272499",
+        "909105",
+        "909106",
+        "272207",
+        "994971",
+        "810149",
+        "425105",
+        "323998",
+        "909109",
+        "272206"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1003.53
+    },
+    {
+      "query_id": "106539",
+      "query": "cost of remodeling a kitchen",
+      "relevant_in_subset": [
+        "678132"
+      ],
+      "returned_ids": [
+        "652458",
+        "218978",
+        "448826",
+        "218981",
+        "198803",
+        "218977",
+        "806393",
+        "274081",
+        "694868",
+        "694871"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1072.91
+    },
+    {
+      "query_id": "106571",
+      "query": "cost of renewing a child's passport",
+      "relevant_in_subset": [
+        "867645"
+      ],
+      "returned_ids": [
+        "773896",
+        "878189",
+        "261892",
+        "500248",
+        "822475",
+        "822476",
+        "844640",
+        "822470",
+        "947617",
+        "101245"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1216.86
+    },
+    {
+      "query_id": "106620",
+      "query": "cost of repainting cabinets",
+      "relevant_in_subset": [
+        "154216"
+      ],
+      "returned_ids": [
+        "41809",
+        "41805",
+        "41814",
+        "597901",
+        "597900",
+        "768522",
+        "499781",
+        "538031",
+        "597899",
+        "335386"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 892.77
+    },
+    {
+      "query_id": "1066359",
+      "query": "what is a thumbnail in adobe",
+      "relevant_in_subset": [
+        "564948"
+      ],
+      "returned_ids": [
+        "806219",
+        "81385",
+        "600284",
+        "46628",
+        "518169",
+        "564951",
+        "46635",
+        "494648",
+        "495428",
+        "153503"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1221.24
+    },
+    {
+      "query_id": "1066561",
+      "query": "what is a tee in cardiology",
+      "relevant_in_subset": [
+        "876620"
+      ],
+      "returned_ids": [
+        "420924",
+        "420916",
+        "57359",
+        "420921",
+        "201872",
+        "876624",
+        "876627",
+        "288582",
+        "668993",
+        "876621"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1167.74
+    },
+    {
+      "query_id": "1066600",
+      "query": "what is a tee for heart patient",
+      "relevant_in_subset": [
+        "201869"
+      ],
+      "returned_ids": [
+        "876621",
+        "201872",
+        "876623",
+        "357568",
+        "201868",
+        "975332",
+        "876620",
+        "283416",
+        "357576",
+        "201869"
+      ],
+      "reciprocal_rank_at_10": 0.1,
+      "recall_at_10": 1.0,
+      "latency_ms": 1193.1
+    },
+    {
+      "query_id": "1066966",
+      "query": "what is a studio room in assisted living",
+      "relevant_in_subset": [
+        "180622"
+      ],
+      "returned_ids": [
+        "310600",
+        "192905",
+        "61693",
+        "936073",
+        "845638",
+        "390750",
+        "851244",
+        "29161",
+        "375341",
+        "851242"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1161.66
+    },
+    {
+      "query_id": "1070306",
+      "query": "climax literature definition",
+      "relevant_in_subset": [
+        "97364"
+      ],
+      "returned_ids": [
+        "651111",
+        "97366",
+        "817055",
+        "817054",
+        "97364",
+        "726626",
+        "530523",
+        "373499",
+        "817057",
+        "600933"
+      ],
+      "reciprocal_rank_at_10": 0.2,
+      "recall_at_10": 1.0,
+      "latency_ms": 110.31
+    },
+    {
+      "query_id": "1071513",
+      "query": "what is a legacy provider id",
+      "relevant_in_subset": [
+        "125399"
+      ],
+      "returned_ids": [
+        "610642",
+        "514990",
+        "486976",
+        "369160",
+        "630393",
+        "293312",
+        "757880",
+        "118713",
+        "738730",
+        "207399"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1043.7
+    },
+    {
+      "query_id": "1071673",
+      "query": "what is a juul?",
+      "relevant_in_subset": [
+        "799600"
+      ],
+      "returned_ids": [
+        "799600",
+        "180482",
+        "180485",
+        "799594",
+        "180479",
+        "799599",
+        "180484",
+        "799596",
+        "180481",
+        "799601"
+      ],
+      "reciprocal_rank_at_10": 1.0,
+      "recall_at_10": 1.0,
+      "latency_ms": 1013.28
+    },
+    {
+      "query_id": "1072628",
+      "query": "what is a gravitational f",
+      "relevant_in_subset": [
+        "720883"
+      ],
+      "returned_ids": [
+        "324202",
+        "936816",
+        "259404",
+        "809154",
+        "548216",
+        "493548",
+        "606434",
+        "481538",
+        "613947",
+        "548211"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 991.93
+    },
+    {
+      "query_id": "1073380",
+      "query": "why married couples should wear wedding rings",
+      "relevant_in_subset": [
+        "703196"
+      ],
+      "returned_ids": [
+        "748366",
+        "676163",
+        "984852",
+        "139960",
+        "984851",
+        "476572",
+        "748369",
+        "676165",
+        "984847",
+        "984854"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 175.63
+    },
+    {
+      "query_id": "1073416",
+      "query": "what is a flexible spending account and dependent care assistance programs",
+      "relevant_in_subset": [
+        "702694"
+      ],
+      "returned_ids": [
+        "846673",
+        "195619",
+        "724955",
+        "906374",
+        "724960",
+        "702698",
+        "244159",
+        "21698",
+        "195613",
+        "643441"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1298.53
+    },
+    {
+      "query_id": "1073558",
+      "query": "why naples italy is awesome",
+      "relevant_in_subset": [
+        "55053"
+      ],
+      "returned_ids": [
+        "67555",
+        "55055",
+        "67556",
+        "453183",
+        "610293",
+        "951578",
+        "67548",
+        "752173",
+        "67552",
+        "67547"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 761.75
+    },
+    {
+      "query_id": "1074568",
+      "query": "what is a dissertation?",
+      "relevant_in_subset": [
+        "422372"
+      ],
+      "returned_ids": [
+        "715562",
+        "715565",
+        "715563",
+        "422365",
+        "422363",
+        "858399",
+        "422371",
+        "422369",
+        "552480",
+        "715564"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1002.05
+    },
+    {
+      "query_id": "1074625",
+      "query": "why vitamin d deficiency",
+      "relevant_in_subset": [
+        "856874"
+      ],
+      "returned_ids": [
+        "85396",
+        "483052",
+        "236448",
+        "155255",
+        "251557",
+        "856871",
+        "584785",
+        "856869",
+        "551283",
+        "483048"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 112.51
+    },
+    {
+      "query_id": "1076098",
+      "query": "what is a blockchain developer",
+      "relevant_in_subset": [
+        "13876"
+      ],
+      "returned_ids": [
+        "903312",
+        "985045",
+        "13877",
+        "42902",
+        "13874",
+        "770939",
+        "762590",
+        "985038",
+        "903314",
+        "903307"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 995.91
+    },
+    {
+      "query_id": "1076328",
+      "query": "cholecystitis symptoms umbilical",
+      "relevant_in_subset": [
+        "996722"
+      ],
+      "returned_ids": [
+        "90556",
+        "996722",
+        "90559",
+        "996725",
+        "996724",
+        "27431",
+        "371780",
+        "996723",
+        "504543",
+        "117361"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 75.35
+    },
+    {
+      "query_id": "1076844",
+      "query": "what is a anc",
+      "relevant_in_subset": [
+        "867120"
+      ],
+      "returned_ids": [
+        "114231",
+        "773306",
+        "114225",
+        "55231",
+        "773309",
+        "901532",
+        "889104",
+        "474635",
+        "114227",
+        "773303"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1004.35
+    },
+    {
+      "query_id": "1076897",
+      "query": "widows benefits age to start",
+      "relevant_in_subset": [
+        "910391"
+      ],
+      "returned_ids": [
+        "947428",
+        "471786",
+        "471792",
+        "471787",
+        "947427",
+        "789024",
+        "695245",
+        "867216",
+        "471793",
+        "128040"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 908.1
+    },
+    {
+      "query_id": "1076948",
+      "query": "what is a acrobat reader",
+      "relevant_in_subset": [
+        "685942"
+      ],
+      "returned_ids": [
+        "682257",
+        "685942",
+        "216853",
+        "661661",
+        "216859",
+        "822185",
+        "577606",
+        "216855",
+        "696050",
+        "577608"
+      ],
+      "reciprocal_rank_at_10": 0.5,
+      "recall_at_10": 1.0,
+      "latency_ms": 1065.43
+    },
+    {
+      "query_id": "1076992",
+      "query": "width of street",
+      "relevant_in_subset": [
+        "813151"
+      ],
+      "returned_ids": [
+        "367548",
+        "279323",
+        "452438",
+        "14558",
+        "269087",
+        "583287",
+        "279319",
+        "583291",
+        "583293",
+        "279322"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 938.68
+    },
+    {
+      "query_id": "1078509",
+      "query": "what hurts the kidney",
+      "relevant_in_subset": [
+        "535539"
+      ],
+      "returned_ids": [
+        "743992",
+        "897606",
+        "897601",
+        "897603",
+        "40235",
+        "486858",
+        "63339",
+        "325227",
+        "946075",
+        "897604"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1079.32
+    },
+    {
+      "query_id": "1079185",
+      "query": "what happens when a corp dissolves and has debt?",
+      "relevant_in_subset": [
+        "53048"
+      ],
+      "returned_ids": [
+        "284538",
+        "887303",
+        "887306",
+        "284534",
+        "750139",
+        "559510",
+        "395308",
+        "430708",
+        "776087",
+        "136666"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 1275.19
+    },
+    {
+      "query_id": "107956",
+      "query": "cost of water softener system",
+      "relevant_in_subset": [
+        "418208"
+      ],
+      "returned_ids": [
+        "418216",
+        "418209",
+        "418217",
+        "545212",
+        "478787",
+        "545211",
+        "478790",
+        "815893",
+        "815889",
+        "234518"
+      ],
+      "reciprocal_rank_at_10": 0,
+      "recall_at_10": 0.0,
+      "latency_ms": 937.56
+    },
+    {
+      "query_id": "1079699",
+      "query": "world championships athletics schedule",
+      "relevant_in_subset": [
+        "212291"
+      ],
+      "returned_ids": [
+        "212292",
+        "212300",
+        "624684",
+        "624685",
+        "48305",
+        "624686",
+        "647286",
+        "876273",
+        "212291",
+        "212298"
+      ],
+      "reciprocal_rank_at_10": 0.1111111111111111,
+      "recall_at_10": 1.0,
+      "latency_ms": 114.51
+    },
+    {
+      "query_id": "1080521",
+      "query": "wreck of the edmund fitzgerald song lyrics",
+      "relevant_in_subset": [
+        "909395"
+      ],
+      "returned_ids": [
+        "909393",
+        "909400",
+        "909395",
+        "909396",
+        "909399",
+        "909397",
+        "86142",
+        "909398",
+        "546787",
+        "200375"
+      ],
+      "reciprocal_rank_at_10": 0.3333333333333333,
+      "recall_at_10": 1.0,
+      "latency_ms": 1143.76
+    }
+  ]
+}

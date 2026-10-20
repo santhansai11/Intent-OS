@@ -15,21 +15,27 @@ class AIKeys:
         self.namespace = 'IntentOS:' + hashlib.sha256(str(config.root).encode()).hexdigest()[:16]
 
     def get(self):
-        if os.environ.get('GEMINI_API_KEY'):
-            return os.environ['GEMINI_API_KEY']
         try:
             import keyring
-            return keyring.get_password(self.namespace, 'gemini-api-key') or ''
+            saved = keyring.get_password(self.namespace, 'gemini-api-key')
+            if saved:
+                return saved
         except Exception:
-            return ''
+            pass
+        return os.environ.get('GEMINI_API_KEY', '').strip()
 
     def save(self, key):
         if not isinstance(key, str) or not 15 <= len(key.strip()) <= 512 or any(c.isspace() for c in key.strip()):
             raise ValueError('Enter a valid Gemini API key')
-        import keyring
-        if keyring.get_keyring().priority <= 0 or 'plaintext' in type(keyring.get_keyring()).__name__.lower():
-            raise ValueError('A secure OS credential store is required')
-        keyring.set_password(self.namespace, 'gemini-api-key', key.strip())
+        try:
+            import keyring
+            if keyring.get_keyring().priority <= 0 or 'plaintext' in type(keyring.get_keyring()).__name__.lower():
+                raise RuntimeError()
+            keyring.set_password(self.namespace, 'gemini-api-key', key.strip())
+            if keyring.get_password(self.namespace, 'gemini-api-key') != key.strip():
+                raise RuntimeError()
+        except Exception:
+            raise ValueError('Could not save the Gemini key. Enable a secure OS credential store and retry.') from None
 
     def delete(self):
         import keyring

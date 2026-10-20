@@ -6,7 +6,27 @@ IntentOS is an AI workspace backed by a durable userspace kernel. Describe a goa
 
 The application has no canned meeting results, simulated routes, or pretend email delivery. File operations execute locally. Gemini receives goals and needed document excerpts; Ollama keeps inference local. Providers never switch automatically. See [the detailed working model](docs/WORKING_MODEL.md) for architecture, search coverage, recovery semantics, and measured latency.
 
-## Run it
+## Workbench upgrade (Review 2)
+
+The workspace now includes multi-file uploads with **Source** and **Reference** roles, reference-guided drafting, searchable/pinnable intent history, individual/bulk history deletion, light/dark themes, and Result/Workflow/Sources/Activity views. Uploads are local copies, scoped to the intents that explicitly attach them. History deletion preserves originals and generated outputs; removing attached copies is an explicit option and shared copies remain until no intent uses them.
+
+The **Knowledge** page builds an incremental local index and searches it using SQLite FTS5/BM25. For hybrid retrieval install a local embedding model with `ollama pull nomic-embed-text`, enter `nomic-embed-text` in Retrieval settings, and refresh the selected folder. Embeddings use the loopback Ollama API; remote model aliases are rejected. Gemini still receives the goal and needed excerpts when Gemini is the chosen planner. No automatic provider fallback occurs.
+
+The **Process studio** supports 1-8 total execution slots, separate planning/read limits, priority changes, and prerequisite intents. Memory use at or above 90% limits new dispatch to one slot when adaptive mode is enabled. These are cooperative userspace execution limits, not Windows process priorities or hard real-time guarantees. A prerequisite must complete successfully; failed/cancelled prerequisites leave dependents waiting for user action.
+
+Local OCR uses PyMuPDF/Tesseract. Place English data from the official [tessdata_fast repository](https://github.com/tesseract-ocr/tessdata_fast) at `storage/runtime/ocr/eng.traineddata`. It is already installed on this development laptop. Uploaded images and `files_ocr` use local OCR; embedded DOCX images are not automatically OCRed.
+
+Limits are explicit: 12 uploads per intent, 100 MB per upload, 25,000 queued entries per index job, 2,000 chunks per document, and 300 pages for PDF indexing. Some document readers return bounded excerpts; comprehensive summaries must follow pagination or disclose partial coverage. Index refresh is manual or requested by an intent; changed/deleted files are excluded from search until refreshed. Dense similarity currently scans the permitted vectors, so 100,000-file retrieval performance is not established.
+
+Observable completion checks enforce required attachment coverage, requested line counts, known RAG citation markers, and discovered assessment coverage. They do not prove that every generated claim is true or that every reference style detail was followed. The Review 2 draft and benchmark data are in `docs/review2/`; reproduce the 12-query experiment with:
+
+```powershell
+python scripts/rag_evaluation.py --corpus "D:\nani\semester\Computer Networks\Lab" --data-root storage_test/rag-evaluation/runtime --output storage_test/rag-evaluation/results.json
+```
+
+Additional API routes: `POST /api/uploads` (authenticated binary body, URL-encoded `X-Filename`), `POST /api/uploads/remove`, `POST /api/history/delete`, `GET /api/knowledge`, and `POST /api/knowledge/search`. Intent submission also accepts `attachments` and `depends_on`; intent controls include `pin` and `priority`.
+
+## Installation
 
 Requires Python **3.10+** and Node **18+** to build the interface. For natural-language planning choose a Gemini API key or [Ollama](https://ollama.com/download). Direct topic-file gathering requires neither.
 
@@ -22,12 +42,12 @@ Open **http://127.0.0.1:8765**. The Python server serves the built React app; yo
 1. In **Connections**, choose **Gemini** for cloud planning or **Ollama** for private local planning.
 2. For Gemini, save your key in the OS credential store, refresh available models, and select a text model. The default is `gemini-3.5-flash-lite`. For Ollama, select a downloaded local model such as your existing `qwen3:4b`.
 3. Add source folders under **Accessible folders** and save provider and folder settings.
-4. In Overview, choose **Ask anything** or **Gather related files · no AI needed**. For direct gathering, enter topic keywords such as `cloud computing`, not a long instruction.
-5. Choose **Selected folders** (then expand **read grants** to select sources), or **Entire computer · accessible files** for that goal. The workspace remains available for outputs; that does not add it to explicitly selected search folders.
+4. In Overview, choose **Ask anything** or **Gather related files · no AI needed**. For direct gathering, enter topics such as `cloud computing`, optionally with a date: `AWS files saved after September 1 2026`. Put the destination in the output controls.
+5. Choose **Selected folders** (expand **Choose folders** to select sources; configured source folders are selected by default), or **Entire computer · accessible files** for that goal. The workspace remains available for outputs; that does not add it to explicitly selected search folders.
 6. Set **Save in folder** to an absolute folder such as `D:\meeting` or `C:\Users\you\Desktop\Reports`. It may already exist; missing folders are created when a file is saved. This is a separate per-goal grant, so you do not need whole-computer access or to add the output folder to Connections. Optionally enter a new collection folder name or output filename. Leave Save in folder blank to use the workspace. Both AI providers receive the selected destination, and relative output filenames resolve there.
-7. The visible output checkbox grants creation of new collections/reports for this goal. Disable it to review those actions individually. Moves, overwrites, email sends, and calendar changes still require exact-action approval.
+7. The visible output checkbox grants creation of new collections/reports for this goal. Disable it to review those actions individually. Moves, overwrites and calendar changes still require exact-action approval. An explicit send-email request with one recipient and message context authorizes one generated email without another confirmation.
 
-Gemini keys never appear in source code, settings JSON, task context, or browser responses. The password field stays empty after saving. A `GEMINI_API_KEY` environment variable is also supported; it takes precedence over the stored key. Google account OAuth is separate and unnecessary for local files or Gemini. Free-tier availability and quotas belong to the Google project; IntentOS does not enable billing or silently change providers when a quota is reached. [Gemini model documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) · [Pricing and free-tier details](https://ai.google.dev/gemini-api/docs/pricing).
+Gemini keys never appear in source code, settings JSON, task context, or browser responses. The password field stays empty after saving. A `GEMINI_API_KEY` environment variable is also supported as a fallback; the key saved in Connections takes precedence. Saving a key activates Gemini for new goals. Use **Test & use model** to verify a real response and save your chosen model. Google account OAuth is separate and unnecessary for local files or Gemini. Free-tier availability and quotas belong to the Google project; IntentOS does not enable billing or silently change providers when a quota is reached. [Gemini model documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) · [Pricing and free-tier details](https://ai.google.dev/gemini-api/docs/pricing).
 
 ### Files and summary formats
 
@@ -35,7 +55,7 @@ File gathering scans filenames and cached document text, copies matches into a *
 
 Summary exports create real **PDF, DOCX, PPTX, XLSX, TXT, Markdown, HTML, CSV, JSON, RTF, ODT, EPUB, and ZIP** files. Office formats use their actual document containers, not renamed text. These are prose summaries: PPTX paginates content into slides, XLSX/CSV organize sections into rows, and ZIP contains Markdown. Unsupported extensions are rejected explicitly. Scanned-document OCR and arbitrary file-format conversion are not implemented.
 
-Whole-computer access means files readable by your existing OS account, with credential, hidden, kernel-state and OS-managed-directory exclusions. It does not elevate permissions. **Search in** shows the actual source folders; the output folder does not add search locations. Scans first discover filenames across those sources, then inspect cached document text. A durable SQLite queue yields to the scheduler every 250 items or about two seconds, and automatically continues until finished. There is no overall 20-second, 50,000-entry or 1,000-match cutoff. Live counts distinguish discovered files from contents checked. Pause/restart preserves progress; copying starts only after the scan finishes. Content search still examines the first 16,000 extracted characters of supported documents up to 10 MB, with no OCR. Prior IntentOS collection folders are excluded to avoid gathering copies repeatedly. Use focused source folders for faster searches. Copies are limited to 500 MB per collection.
+Whole-computer access means files readable by your existing OS account, with credential, hidden, kernel-state and OS-managed-directory exclusions. It does not elevate permissions. **Search in** shows the actual source folders; the output folder does not add search locations. Scans first discover filenames across those sources, then inspect cached document text. Last-modified date filters run before document extraction. “After September 1 2026” starts September 2; “since” includes September 1. Nested code projects (identified by Git/build manifests) and dependency/build/tool directories are skipped; explicitly selected project roots are searched, and direct mode offers **Include nested code projects**. A durable SQLite queue yields to the scheduler every 250 items or about two seconds, and automatically continues until finished. There is no overall 20-second, 50,000-entry or 1,000-match cutoff. Live counts distinguish discovered files from contents checked. Pause/restart preserves progress; copying starts only after the scan finishes. Content search still examines the first 16,000 extracted characters of supported documents up to 10 MB, with no OCR. Prior IntentOS collection folders are excluded to avoid gathering copies repeatedly. Use focused source folders for faster searches. Copies are limited to 500 MB per collection.
 
 The Ollama integration uses its native [chat endpoint](https://docs.ollama.com/api/chat) and [JSON-schema structured output](https://docs.ollama.com/capabilities/structured-outputs), preserving the model's default reasoning mode. Small prompts use an 8K context; longer histories use 16K. A local decision can take minutes on limited hardware, so the request timeout is ten minutes. There is no cloud fallback and no model download triggered by the app. `OLLAMA_HOST` must be loopback. The planner checks model metadata before sending context and rejects cloud-backed models and aliases. Local model quality determines how well a complex goal is planned; unsupported capabilities are not invented.
 
@@ -55,6 +75,8 @@ For development, run `python run_intentos.py --server` and `npm --prefix fronten
 
 ## Connect Google
 
+See [the complete setup guide](docs/GOOGLE_SETUP.md) for a new Google Cloud project, OAuth, Maps billing/key setup, supported operations and limits.
+
 Copy `.env.example` to `.env` and fill in your own credentials. The file is ignored by Git. Restart the Python server after changing environment settings.
 
 1. Create a Google Cloud project and configure its OAuth consent screen. For a personal project in Testing mode, add your Google account as a test user.
@@ -68,13 +90,13 @@ The implementation uses [Google’s authorization-code flow](https://developers.
 
 | Connection | OAuth scope | Available operations |
 | --- | --- | --- |
-| Calendar | `calendar.events` | List events in a timezone-aware interval; create an event after approval |
-| Drive | `drive.metadata.readonly` | Search filenames and retrieve metadata/links |
-| Gmail | `gmail.send` | Send a plain text email to one address after approval |
+| Calendar | `calendar.events` | List with pagination; create, update and delete events after approval |
+| Drive | `drive.readonly`, `drive.file` | Search, read text, download/export, upload new files |
+| Gmail | `gmail.readonly`, `gmail.compose`, `gmail.send` | Search, read messages, create drafts and send plain text mail |
 
-Drive content download, Gmail inbox reading, attachments, and arbitrary Google services are not implemented. Disconnect removes this app’s locally stored credentials. Revoke the grant in your Google account if you also want to remove Google-side access. Google may expire testing-mode or revoked refresh tokens; reconnect when requested.
+Drive downloads/exports and Gmail inbox reading are supported. Downloads are capped at 10 MB, uploads at 5 MB; existing files are preserved. Gmail attachments are listed but not downloaded. Reconnect existing accounts to approve the expanded scopes. Disconnect removes this app’s locally stored credentials. Revoke the grant in your Google account if you also want to remove Google-side access. Google may expire testing-mode or revoked refresh tokens; reconnect when requested.
 
-**Maps is separate:** enable the **Routes API**, configure Google Cloud billing, and set `GOOGLE_MAPS_API_KEY`. The real route tool calls [Compute Routes](https://developers.google.com/maps/documentation/routes/compute_route_directions). OAuth sign-in alone does not enable Maps or pay API charges. Restrict the key to the Routes API and appropriate server restrictions.
+**Maps is separate:** enable the **Routes API** and **Places API (New)**, configure Google Cloud billing, and set `GOOGLE_MAPS_API_KEY`. The real route tool calls [Compute Routes](https://developers.google.com/maps/documentation/routes/compute_route_directions). OAuth sign-in alone does not enable Maps or pay API charges. Restrict the key to these APIs and appropriate server restrictions. Place search and details are supported in addition to routing.
 
 ## OS concepts that actually execute
 
@@ -114,7 +136,7 @@ Pause → PAUSED; cancel → CANCELLED, both at a safe boundary
 
 ## Capabilities
 
-The registry exposes 20 real tools: system status; file list/search/read/write/copy/move; topic search and collection; document export; PDF text replacement and merging; knowledge search, Wikipedia extracts, and multi-source research; Calendar list/create; Drive metadata search; Gmail send; Maps routes.
+The registry exposes real tools for: system status; file list/search/read/write/copy/move; topic search and collection; document export; PDF text replacement and merging; knowledge search, Wikipedia extracts, and multi-source research; Calendar list/create/update/delete; Drive search/read/download/upload; Gmail search/read/draft/send; Maps places/details/routes.
 
 PDF/Office reading extracts existing text (no OCR). Document export creates the 13 formats described above. PDF editing tools save new copies and refuse to overwrite inputs or existing outputs. Text replacement supports exact, single-line ASCII text in a single horizontal style span; it uses standard fonts and may shrink text to fit. Scanned, rotated, signed, encrypted, and form PDFs need specialized editors for text changes. Merging preserves page order and interactive form fields, with separate field namespaces per input. Inputs are limited to 20 MB / 200 pages each; merges to 500 pages / 100 MB total. Free research connectors query Wikipedia, Crossref and Open Library concurrently and return excerpts/metadata with source URLs and provider failures. This is limited research, not arbitrary browser automation or full-text access to every source. Dates, recipients, destinations, and content come from the user/model and actual observations, not fixed goal templates.
 
@@ -146,6 +168,7 @@ To add a tool, register its schema, read scope, side-effect flag, handler, and r
 
 ```powershell
 python -m unittest discover -s tests
+npm --prefix frontend test
 npm --prefix frontend run build
 ```
 
@@ -173,3 +196,8 @@ tests/test_runtime.py       New runtime and integration regressions
 ```
 
 The original classifier, template planner, simulated services, and classical scheduler comparison remain solely for **educational demonstrations and regression tests**. `--demo` explicitly labels synthetic results; `--compare` compares FCFS/Priority/RR/EDF on a synthetic workload. Neither powers the application. Existing documents/artifacts are preserved; the obsolete duplicate embedded UI and unused React components were removed.
+## Public research datasets
+
+MS MARCO and Enron can now be imported into a separate searchable public corpus. Open **Knowledge → Explore beyond your files** to search installed datasets or ask the configured AI for a cited answer. Enron includes UTC date filters. Imports stream bounded subsets into SQLite; they do not populate your Gmail account or mix with private document search.
+
+See [external dataset setup and evaluation](docs/EXTERNAL_DATASETS.md) for import commands, scale limits, attribution and benchmark methodology.

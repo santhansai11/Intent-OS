@@ -19,15 +19,19 @@ class FileScan:
 
     def batch(self, args, task, exclude=None, job_id=None):
         import sqlite3
-        from services.collections import SKIP_DIRS, TEXT_TYPES
-        topics = self.owner.terms(args['query'])
+        from services.collections import SKIP_DIRS, TEXT_TYPES, PROJECT_MARKERS
+        from services.search_query import search_spec
+        query, filters, bounds = search_spec(args)
+        topics = self.owner.terms(query)
         patterns = {t: self.owner.pattern(t) for t in topics}
         roots = list(task.get('search_roots', task['roots']))
         if task.get('access_mode') == 'system':
             roots = [str(Path.home() / n) for n in ('Documents', 'Desktop', 'Downloads')] + roots
         excluded = Path(exclude).resolve() if exclude else None
-        job_id = job_id or task.get('pending', {}).get('id') or uuid.uuid4().hex
-        signature = hashlib.sha256(json.dumps([topics, roots, task['roots'], str(excluded)], sort_keys=True).encode()).hexdigest()
+        job_id = job_id or (task.get('pending') or {}).get('id') or uuid.uuid4().hex
+        explicit_roots = {str(Path(r).resolve()) for r in roots}
+        include_projects = args.get('include_projects', 'false') == 'true'
+        signature = hashlib.sha256(json.dumps([topics, roots, task['roots'], str(excluded), filters, include_projects], sort_keys=True).encode()).hexdigest()
         started = time.monotonic()
         batch_items = self.registry.config.values.get('scan_batch_items', 250)
         batch_seconds = self.registry.config.values.get('scan_batch_seconds', 2)
@@ -47,7 +51,8 @@ class FileScan:
                     raise ValueError('Scan grants or query changed; start a new collection')
             else:
                 state = {'signature': signature, 'phase': 'discover', 'scanned': 0, 'extracted': 0,
-                         'cache_hits': 0, 'skipped_or_unreadable': 0, 'excluded_generated': 0, 'seconds': 0}
+                         'cache_hits': 0, 'skipped_or_unreadable': 0, 'excluded_generated': 0,
+                         'excluded_projects': 0, 'excluded_by_date': 0, 'seconds': 0}
                 for raw in roots:
                     try:
                         root = self.registry.path(raw, task)
@@ -88,6 +93,10 @@ class FileScan:
                         db.execute('UPDATE scan_queue SET done=1 WHERE seq=?', (seq,))
                         continue
                     if kind == 'entry' and path.is_dir():
+                        if not include_projects and str(path) not in explicit_roots and any((path / marker).exists() for marker in PROJECT_MARKERS):
+                            state['excluded_projects'] += 1
+                            db.execute('UPDATE scan_queue SET done=1 WHERE seq=?', (seq,))
+                            continue
                         # Do not collect copies from earlier IntentOS collections.
                         manifest = path / 'manifest.json'
                         generated = False
@@ -117,12 +126,16 @@ class FileScan:
                     stat = path.stat()
                     if kind == 'entry':
                         state['scanned'] += 1
+                        if stat.st_mtime < bounds.get('modified_after', float('-inf')) or stat.st_mtime >= bounds.get('modified_before', float('inf')):
+                            state['excluded_by_date'] += 1
+                            db.execute('UPDATE scan_queue SET done=1 WHERE seq=?', (seq,))
+                            continue
                         if stat.st_size > 100_000_000:
                             state['skipped_or_unreadable'] += 1
                             db.execute('UPDATE scan_queue SET done=1 WHERE seq=?', (seq,))
                             continue
                         matched = match_file(path, stat, '')
-                        extract = path.suffix.lower() in TEXT_TYPES and stat.st_size <= 10_000_000
+                        extract = path.suffix.lower() in TEXT_TYPES and (stat.st_size <= 10_000_000 or path.suffix.lower() == '.docx')
                         db.execute('UPDATE scan_queue SET kind=?,done=?,match=? WHERE seq=?',
                                    ('content' if extract else 'entry', 0 if extract else 1, matched, seq))
                     else:
@@ -136,6 +149,8 @@ class FileScan:
                             content = self.registry.read({'path': str(path)}, task)['content']
                             db.execute('INSERT OR REPLACE INTO documents VALUES (?,?,?)', (str(path), stamp, content))
                         db.execute('UPDATE scan_queue SET match=?,done=1 WHERE seq=?', (match_file(path, stat, content), seq))
+                except ModuleNotFoundError:
+                    raise ValueError('A document reader is missing from the Python environment running IntentOS. Install requirements.txt with that Python, then resume.') from None
                 except Exception:
                     # Unsupported/encrypted documents keep any filename match.
                     state['skipped_or_unreadable'] += 1
@@ -146,9 +161,10 @@ class FileScan:
             remaining = db.execute('SELECT COUNT(*) FROM scan_queue WHERE job=? AND done=0', (job_id,)).fetchone()[0]
             result = {k: v for k, v in state.items() if k != 'signature'}
             result.update({'status': 'scanning' if state['phase'] != 'complete' else 'searched', 'scan_id': job_id,
-                'query': args['query'], 'effective_topics': topics, 'matched': matched, 'remaining': remaining,
+                'query': args['query'], 'effective_topics': topics, 'date_filters': filters,
+                'search_roots': roots, 'matched': matched, 'remaining': remaining,
                 'truncated': False, 'matching': 'whole topic phrases; comma-separated alternatives',
-                'coverage': 'Readable non-system files; filenames and first 16000 characters of supported documents. No OCR. Prior IntentOS collections excluded.',
+                'coverage': 'Filenames and first 16000 characters of supported documents. Dates use last modification time. No OCR. Tool folders and prior collections excluded; nested code projects excluded unless enabled. Explicit source roots are searched.',
                 'seconds': round(state['seconds'], 3),
                 'note': 'Scan in progress; remaining folders and document contents will be checked.' if state['phase'] != 'complete' else 'Scan completed within the selected folders and exclusions.'})
             if state['phase'] == 'complete':

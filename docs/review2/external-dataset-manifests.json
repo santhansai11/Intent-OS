@@ -1,0 +1,68 @@
+[
+  {
+    "id": "msmarco",
+    "name": "MS MARCO passages",
+    "total_records": 8841823,
+    "source": "https://github.com/microsoft/msmarco/blob/master/Datasets.md",
+    "archive": "https://msmarco.z22.web.core.windows.net/msmarcoranking/collection.tar.gz",
+    "release": "Passage ranking v1",
+    "terms": "Microsoft research dataset terms apply; see source and cite Nguyen et al. (2016).",
+    "installed": {
+      "dataset": "msmarco",
+      "name": "MS MARCO passages",
+      "total_records": 8841823,
+      "source": "https://github.com/microsoft/msmarco/blob/master/Datasets.md",
+      "archive": "https://msmarco.z22.web.core.windows.net/msmarcoranking/collection.tar.gz",
+      "release": "Passage ranking v1",
+      "terms": "Microsoft research dataset terms apply; see source and cite Nguyen et al. (2016).",
+      "records": 1000000,
+      "requested_limit": 1000000,
+      "selection": "First N valid unique records in archive order; not a random sample",
+      "subset_sha256": "27691cdc7f73f0a4de040b2158280cca2b135ce7979d03be0e9a1d66135ff3a8",
+      "source_headers": {
+        "ETag": "\"0x8DBE166D3DC101A\"",
+        "Last-Modified": "Thu, 09 Nov 2023 20:59:56 GMT"
+      },
+      "input": "official HTTPS archive",
+      "imported_utc": "2026-10-16T17:12:06.430728+00:00",
+      "index_seconds": 401.377,
+      "engine": "SQLite FTS5 BM25; no embeddings",
+      "skipped_members": 0,
+      "skipped_records": 0,
+      "truncated_records": 0
+    }
+  },
+  {
+    "id": "enron",
+    "name": "Enron email corpus",
+    "total_records": 500000,
+    "source": "https://www.cs.cmu.edu/~enron/",
+    "archive": "https://www.cs.cmu.edu/~enron/enron_mail_20150507.tar.gz",
+    "release": "CMU May 7, 2015; total is approximate",
+    "terms": "Public research corpus; respect correspondent privacy. No attachments or verified factual ground truth.",
+    "installed": {
+      "dataset": "enron",
+      "name": "Enron email corpus",
+      "total_records": 500000,
+      "source": "https://www.cs.cmu.edu/~enron/",
+      "archive": "https://www.cs.cmu.edu/~enron/enron_mail_20150507.tar.gz",
+      "release": "CMU May 7, 2015; total is approximate",
+      "terms": "Public research corpus; respect correspondent privacy. No attachments or verified factual ground truth.",
+      "records": 100000,
+      "requested_limit": 100000,
+      "selection": "First N valid unique records in archive order; not a random sample",
+      "subset_sha256": "45a01513021b378d3a44ec761dfdebe6c540605de9447bffc71806a3e649aca3",
+      "source_headers": {
+        "ETag": "\"1a6b8803-51583da2f8640\"",
+        "Last-Modified": "Thu, 07 May 2015 20:35:29 GMT"
+      },
+      "input": "official HTTPS archive",
+      "imported_utc": "2026-10-16T17:08:22.706838+00:00",
+      "index_seconds": 535.278,
+      "engine": "SQLite FTS5 BM25; no embeddings",
+      "skipped_members": 568,
+      "skipped_records": 0,
+      "truncated_records": 506
+    }
+  }
+]

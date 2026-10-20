@@ -5,6 +5,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import secrets
 import threading
 import time
@@ -14,18 +15,59 @@ import urllib.request
 
 
 class ConnectionError(RuntimeError):
-    def __init__(self, message, retryable=False):
+    def __init__(self, message, retryable=False, request_rejected=False, status=None, reason=None):
         super().__init__(message)
         self.retryable = retryable
+        self.request_rejected = request_rejected
+        self.status = status
+        self.reason = reason
 
 
-def request_json(url, data=None, headers=None, timeout=30, form=False):
+def http_error(url, exc):
+    """Translate bounded provider error codes, never reflect credentials or raw text."""
+    host = urllib.parse.urlsplit(url).hostname
+    code = exc.code
+    message = f'{host} returned HTTP {code}'
+    reason = None
+    try:
+        payload = json.loads(exc.read(32769))
+        error = payload.get('error', {}) if isinstance(payload, dict) else {}
+        if not isinstance(error, dict):
+            error = {}
+        details = error.get('details', [])
+        reasons = {item.get('reason') for item in [*error.get('errors', []), *details] if isinstance(item, dict)}
+        known = ('SERVICE_DISABLED', 'accessNotConfigured', 'ACCESS_TOKEN_SCOPE_INSUFFICIENT', 'insufficientPermissions', 'authError', 'domainPolicy', 'dailyLimitExceeded', 'userRateLimitExceeded', 'rateLimitExceeded')
+        reason = next((r for r in known if r in reasons), None)
+        if host == 'gmail.googleapis.com':
+            if reason in ('SERVICE_DISABLED', 'accessNotConfigured'):
+                project = next((item.get('metadata', {}).get('consumer', '') for item in details if isinstance(item, dict) and isinstance(item.get('metadata'), dict)), '')
+                suffix = '?project=' + project.split('/')[1] if re.fullmatch(r'projects/\d+', project) else ''
+                message = 'Gmail API is disabled for the Google Cloud project. Enable Gmail API, wait a few minutes, then resume. https://console.cloud.google.com/apis/library/gmail.googleapis.com' + suffix
+            elif reason in ('ACCESS_TOKEN_SCOPE_INSUFFICIENT', 'insufficientPermissions'):
+                message = 'Gmail rejected the permissions. Reconnect Gmail in Connections and grant the requested access, then resume.'
+            elif reason == 'authError' or code == 401:
+                message = 'Gmail authorization is invalid or expired. Reconnect Gmail in Connections, then resume.'
+            elif reason == 'domainPolicy':
+                message = 'Your Google Workspace administrator has blocked Gmail API access. Ask the administrator to allow this app.'
+            elif reason in ('dailyLimitExceeded', 'userRateLimitExceeded', 'rateLimitExceeded') or code == 429:
+                message = 'Gmail rejected the request because a sending or API quota was reached. Wait for the limit to reset, then resume.'
+            elif code == 403:
+                message = 'Gmail rejected this request (HTTP 403). Check that Gmail API is enabled and reconnect Gmail with the requested permissions.'
+    except (ValueError, TypeError, AttributeError, OSError):
+        pass
+    finally:
+        exc.close()
+    return ConnectionError(message, code == 429 or code >= 500,
+                           request_rejected=code in (400, 401, 403, 404, 405, 413, 422, 429), status=code, reason=reason)
+
+
+def request_json(url, data=None, headers=None, timeout=30, form=False, method=None, response_bytes=False, content_type=None):
     body = None
     headers = dict(headers or {})
     if data is not None:
-        body = (urllib.parse.urlencode(data) if form else json.dumps(data)).encode()
-        headers['Content-Type'] = 'application/x-www-form-urlencoded' if form else 'application/json'
-    req = urllib.request.Request(url, data=body, headers={'User-Agent': 'IntentOS/2.0', **headers})
+        body = data if isinstance(data, bytes) else (urllib.parse.urlencode(data) if form else json.dumps(data)).encode()
+        headers['Content-Type'] = content_type or ('application/x-www-form-urlencoded' if form else 'application/json')
+    req = urllib.request.Request(url, data=body, headers={'User-Agent': 'IntentOS/2.0', **headers}, method=method)
     # Never forward credentials through redirects or use environment HTTP proxies for local inference.
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, *args, **kwargs):
@@ -33,13 +75,13 @@ def request_json(url, data=None, headers=None, timeout=30, form=False):
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
     try:
         with opener.open(req, timeout=timeout) as response:
-            raw = response.read(2_000_001)
-        if len(raw) > 2_000_000:
-            raise ConnectionError('Service response exceeded the 2 MB limit')
-        return json.loads(raw)
+            limit = 10_000_000 if response_bytes else 2_000_000
+            raw = response.read(limit + 1)
+        if len(raw) > limit:
+            raise ConnectionError('Service response exceeded the download limit')
+        return raw if response_bytes else json.loads(raw) if raw else {}
     except urllib.error.HTTPError as exc:
-        raise ConnectionError(f'{urllib.parse.urlsplit(url).hostname} returned HTTP {exc.code}',
-                              exc.code == 429 or exc.code >= 500) from None
+        raise http_error(url, exc) from None
     except (urllib.error.URLError, TimeoutError, OSError):
         raise ConnectionError(f'Cannot reach {urllib.parse.urlsplit(url).hostname}; check the service and connection', True) from None
     except (ValueError, UnicodeError):
@@ -79,8 +121,8 @@ class CredentialStore:
 
 SCOPES = {
     'calendar': 'https://www.googleapis.com/auth/calendar.events',
-    'gmail': 'https://www.googleapis.com/auth/gmail.send',
-    'drive': 'https://www.googleapis.com/auth/drive.metadata.readonly',
+    'gmail': 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send',
+    'drive': 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
 }
 
 
@@ -100,7 +142,7 @@ class GoogleConnection:
         scopes = tokens.get('scope', '').split()
         return {'configured': bool(self.client_id and self.client_secret),
                 'connected': bool(tokens.get('refresh_token') or tokens.get('access_token')),
-                'services': [name for name, scope in SCOPES.items() if scope in scopes],
+                'services': [name for name, scope in SCOPES.items() if set(scope.split()) <= set(scopes)],
                 'redirect_uri': self.redirect_uri,
                 'maps': bool(os.environ.get('GOOGLE_MAPS_API_KEY'))}
 
@@ -144,9 +186,12 @@ class GoogleConnection:
             self.tokens = {}
             self.pending.clear()
 
-    def call(self, service, url, data=None):
+    def call(self, service, url, data=None, **options):
+        parsed = urllib.parse.urlsplit(url)
+        if parsed.scheme != 'https' or parsed.hostname not in ('www.googleapis.com', 'gmail.googleapis.com') or parsed.username or parsed.port not in (None, 443):
+            raise ValueError('Google requests must use an approved HTTPS endpoint')
         with self.lock:
-            if SCOPES[service] not in self.tokens.get('scope', '').split():
+            if not set(SCOPES[service].split()) <= set(self.tokens.get('scope', '').split()):
                 raise ConnectionError(f'Connect Google {service} in Connections first')
             if self.tokens.get('expires_at', 0) < time.time() + 60:
                 if not self.tokens.get('refresh_token'):
@@ -155,4 +200,4 @@ class GoogleConnection:
                     'client_id': self.client_id, 'client_secret': self.client_secret,
                     'refresh_token': self.tokens['refresh_token'], 'grant_type': 'refresh_token'}, form=True))
             token = self.tokens['access_token']
-        return request_json(url, data, {'Authorization': 'Bearer ' + token})
+        return request_json(url, data, {'Authorization': 'Bearer ' + token}, **options)

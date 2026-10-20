@@ -51,6 +51,14 @@ class Config:
     def gemini_model(self):
         return self.values.get('gemini_model', os.environ.get('GEMINI_MODEL', 'gemini-3.5-flash-lite'))
 
+    @property
+    def execution(self):
+        return {**{'workers': 3, 'model_slots': 1, 'read_slots': 2, 'adaptive': True}, **self.values.get('execution', {})}
+
+    @property
+    def embedding_model(self):
+        return self.values.get('embedding_model', '')
+
     @staticmethod
     def system_roots():
         if os.name == 'nt':
@@ -66,14 +74,20 @@ class Config:
             raise ValueError('Invalid model or folder list')
         resolved = []
         for item in roots:
-            if not isinstance(item, str) or not Path(item).expanduser().is_dir():
+            if not isinstance(item, str) or not Path(item).expanduser().is_absolute() or not Path(item).expanduser().is_dir():
                 raise ValueError(f'Folder does not exist: {item}')
             resolved.append(str(Path(item).expanduser().resolve()))
         provider = data.get('provider', self.provider)
         gemini_model = data.get('gemini_model', self.gemini_model)
         if provider not in ('ollama', 'gemini') or not isinstance(gemini_model, str) or not gemini_model.strip() or len(gemini_model) > 120:
             raise ValueError('Choose a supported AI provider and model')
-        values = {'model': model.strip(), 'roots': resolved, 'provider': provider, 'gemini_model': gemini_model.strip()}
+        execution = {**self.execution, **data.get('execution', {})}
+        if set(execution) != {'workers', 'model_slots', 'read_slots', 'adaptive'} or any(type(execution[k]) is not int or not 1 <= execution[k] <= 8 for k in ('workers', 'model_slots', 'read_slots')) or not isinstance(execution['adaptive'], bool):
+            raise ValueError('Use 1–8 execution slots and a boolean adaptive setting')
+        embedding_model = data.get('embedding_model', self.embedding_model)
+        if not isinstance(embedding_model, str) or len(embedding_model) > 120:
+            raise ValueError('Choose an installed local embedding model')
+        values = {**self.values, 'model': model.strip(), 'roots': resolved, 'provider': provider, 'gemini_model': gemini_model.strip(), 'execution': execution, 'embedding_model': embedding_model.strip()}
         temp = self.path.with_suffix('.tmp')
         temp.write_text(json.dumps(values, indent=2), encoding='utf-8')
         temp.replace(self.path)
@@ -84,5 +98,7 @@ class Config:
         return {'model': self.model, 'roots': self.roots, 'workspace': str(self.workspace),
                 'ollama_url': self.ollama_url, 'local_only': self.provider == 'ollama',
                 'provider': self.provider, 'gemini_model': self.gemini_model,
-                'gemini_configured': bool(AIKeys(self).get()), 'system_roots': self.system_roots()}
+                'gemini_configured': bool(AIKeys(self).get()), 'system_roots': self.system_roots(),
+                'execution': self.execution, 'embedding_model': self.embedding_model,
+                'ocr_ready': (self.root / 'ocr' / 'eng.traineddata').is_file()}
 

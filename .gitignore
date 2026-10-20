@@ -24,7 +24,12 @@ test_results.txt
 .env.*
 !.env.example
 storage/runtime/
+storage/workspace/
 storage_test/
+
+# UI captures that include account history, local paths, or document identity
+docs/review2/screenshots/*
+!docs/review2/screenshots/external-datasets.png
 /output/pdf/
 /tmp/pdfs/
 *.sqlite3*

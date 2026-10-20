@@ -55,6 +55,10 @@ class IntentOSHandler(BaseHTTPRequestHandler):
                 return self.send_body(200, {'status': 'ok', 'runtime': 'durable-local', 'version': 2})
             if path == '/api/status':
                 return self.send_body(200, self.runtime.snapshot())
+            if path == '/api/knowledge':
+                return self.send_body(200, self.runtime.registry.knowledge.status())
+            if path == '/api/datasets':
+                return self.send_body(200, {'datasets': self.runtime.registry.datasets.catalog()})
             if path == '/api/system':
                 return self.send_body(200, system_snapshot())
             if path == '/api/models':
@@ -103,6 +107,8 @@ class IntentOSHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
+            if urlsplit(self.path).path == '/api/uploads':
+                return self.receive_upload()
             length = int(self.headers.get('Content-Length', '0'))
             if length < 0 or length > 200000:
                 return self.send_body(413, {'error': 'Request exceeds 200 KB'})
@@ -127,7 +133,24 @@ class IntentOSHandler(BaseHTTPRequestHandler):
             if path == '/api/intents':
                 return self.send_body(201, self.runtime.submit(data.get('text'), data.get('priority', 'NORMAL'),
                     data.get('deadline'), data.get('roots'), data.get('scopes'), data.get('access_mode', 'selected'),
-                    data.get('auto_outputs', False), data.get('workflow'), data.get('search_roots'), data.get('output_folder')))
+                    data.get('auto_outputs', False), data.get('workflow'), data.get('search_roots'), data.get('output_folder'), data.get('attachments'), data.get('depends_on')))
+            if path == '/api/history/delete':
+                return self.send_body(200, self.runtime.delete_history(data.get('ids'), data.get('remove_uploads') is True))
+            if path == '/api/uploads/remove':
+                ident = data.get('id')
+                with self.runtime.cv:
+                    if any(a['id'] == ident for t in self.runtime.tasks.values() for a in t.get('attachments', [])):
+                        raise ValueError('This upload belongs to an intent. Manage it through history deletion.')
+                    self.runtime.registry.knowledge.forget([self.runtime.uploads.resolve([{'id': ident}])[0]['path']])
+                    self.runtime.uploads.remove(ident)
+                return self.send_body(200, {'removed': True})
+            if path == '/api/knowledge/search':
+                roots = data.get('roots', self.runtime.config.roots)
+                if not isinstance(roots, list) or any(r not in self.runtime.config.roots for r in roots):
+                    raise ValueError('Choose configured folders')
+                return self.send_body(200, self.runtime.registry.knowledge.search({'query': data.get('query', '')}, {'roots': roots, 'search_roots': roots}))
+            if path == '/api/datasets/search':
+                return self.send_body(200, self.runtime.registry.datasets.search(data))
             if path.startswith('/api/intents/'):
                 parts = path.strip('/').split('/')
                 if len(parts) != 4:
@@ -143,7 +166,20 @@ class IntentOSHandler(BaseHTTPRequestHandler):
                     AIKeys(self.runtime.config).delete()
                 else:
                     AIKeys(self.runtime.config).save(data.get('key'))
+                    with self.runtime.cv:
+                        self.runtime.config.update({'provider': 'gemini'})
                 return self.send_body(200, {'configured': bool(AIKeys(self.runtime.config).get())})
+            if path == '/api/ai/test':
+                from services.gemini import Gemini
+                from types import SimpleNamespace
+                model = data.get('model', self.runtime.config.gemini_model)
+                if not isinstance(model, str):
+                    raise ValueError('Choose a Gemini model')
+                probe = Gemini(SimpleNamespace(root=self.runtime.config.root, gemini_model=model))
+                answer, _ = probe.generate('Return JSON with ok=true.', {'message': 'Connection test'})
+                if not isinstance(answer, dict) or answer.get('ok') is not True:
+                    raise ConnectionError('Gemini responded but failed the JSON connection test')
+                return self.send_body(200, {'ok': True, 'model': model})
             if path == '/api/google/connect':
                 return self.send_body(200, {'url': self.runtime.google.begin(data.get('services'))})
             if path == '/api/google/disconnect':
@@ -156,6 +192,27 @@ class IntentOSHandler(BaseHTTPRequestHandler):
             pass
         except Exception:
             self.send_body(500, {'error': 'Internal error. Check the local server and retry.'})
+
+    def receive_upload(self):
+        from urllib.parse import unquote
+        # Large bodies are authenticated BEFORE they touch disk or memory.
+        port = self.server.server_address[1]
+        origin = self.headers.get('Origin')
+        allowed = {f'http://127.0.0.1:{port}', f'http://localhost:{port}', 'http://localhost:5173', 'http://127.0.0.1:5173'}
+        if not self.trusted_host() or (origin and origin not in allowed) or not secrets.compare_digest(self.headers.get('X-IntentOS-Token', ''), self.server.token):
+            self.close_connection = True
+            return self.send_body(403, {'error': 'Refresh IntentOS to upload files'})
+        length = int(self.headers.get('Content-Length', '0'))
+        if not 0 < length <= 100_000_000:
+            self.close_connection = True
+            return self.send_body(413, {'error': 'Each file must be between 1 byte and 100 MB'})
+        self.connection.settimeout(60)
+        try:
+            result = self.runtime.uploads.receive(self.rfile, unquote(self.headers.get('X-Filename', '')), length)
+        except Exception:
+            self.close_connection = True
+            raise
+        return self.send_body(201, result)
 
     def events(self):
         if not self.server.stream_slots.acquire(blocking=False):

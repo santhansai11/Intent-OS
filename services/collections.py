@@ -8,6 +8,10 @@ import zipfile
 SKIP_DIRS = {'windows', 'program files', 'program files (x86)', 'programdata', 'appdata',
              'node_modules', '__pycache__', '$recycle.bin', 'system volume information',
              'venv', '.venv', 'site-packages', 'proc', 'sys', 'dev', 'run', 'lost+found'}
+SKIP_DIRS |= {'dist', 'build', 'target', 'vendor', 'coverage', 'bower_components',
+              'packages', 'env', 'envs', 'miniconda3', 'anaconda3', 'cuda', 'msys64'}
+PROJECT_MARKERS = {'.git', 'package.json', 'pyproject.toml', 'Cargo.toml', 'go.mod',
+                   'pom.xml', 'build.gradle', 'CMakeLists.txt', 'requirements.txt'}
 TEXT_TYPES = {'.txt', '.md', '.csv', '.json', '.html', '.xml', '.yaml', '.yml', '.tex',
               '.py', '.js', '.ts', '.rst', '.pdf', '.docx', '.pptx', '.xlsx'}
 STOP = set('a an the and or of to in on for with all files file related about topic documents document prepare meeting my me bring collect copy gather find search please that these those at into store save put move keep originals unchanged together'.split())
@@ -20,6 +24,8 @@ class FileCollections:
 
     @staticmethod
     def terms(query):
+        from services.search_query import parse_query
+        query, _ = parse_query(query)
         # A direct workflow is a topic search, not a natural-language planner.
         # Refuse path instructions rather than quietly searching for their words
         # and ignoring the user's requested destination.

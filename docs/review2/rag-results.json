@@ -1,0 +1,328 @@
+{
+  "date": "2026-10-16",
+  "dataset": "Six user-provided Computer Networks Lab DOCX assessments; PDF duplicates excluded",
+  "documents": 6,
+  "source_bytes": 19704013,
+  "model": "nomic-embed-text",
+  "python": "3.14.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "initial_index_seconds": 83.942,
+  "initial_cache_hits": 0,
+  "unchanged_refresh_seconds": 0.025,
+  "unchanged_cache_hits": 6,
+  "index": {
+    "documents": 6,
+    "chunks": 45,
+    "embedded_chunks": 45,
+    "embedding_model": "nomic-embed-text",
+    "engine": "SQLite FTS5 \u00b7 BM25 \u00b7 local embeddings \u00b7 reciprocal rank fusion"
+  },
+  "modes": {
+    "BM25": {
+      "hit_at_1": 0.9166666666666666,
+      "mrr_at_5": 0.9444444444444445,
+      "median_latency_ms": 12.0,
+      "queries": [
+        {
+          "query": "hub broadcasts packets to every port",
+          "expected": "ASS1.docx",
+          "returned": [
+            "ASS 6.docx",
+            "ASS3.docx",
+            "ASS1.docx"
+          ],
+          "rank": 3,
+          "latency_ms": 18,
+          "warning": ""
+        },
+        {
+          "query": "minimum seven hosts hub and switch LAN simulation",
+          "expected": "ASS1.docx",
+          "returned": [
+            "ASS1.docx",
+            "ASS3.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 12,
+          "warning": ""
+        },
+        {
+          "query": "connect two LANs through one router",
+          "expected": "ASS 2.docx",
+          "returned": [
+            "ASS 2.docx",
+            "ASS1.docx",
+            "Ass 5.docx",
+            "ASS3.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 11,
+          "warning": ""
+        },
+        {
+          "query": "ISR4331 router and twenty end devices",
+          "expected": "ASS 2.docx",
+          "returned": [
+            "ASS 2.docx",
+            "ASS3.docx",
+            "ASS1.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 11,
+          "warning": ""
+        },
+        {
+          "query": "star ring bus tree mesh hybrid topology",
+          "expected": "ASS3.docx",
+          "returned": [
+            "ASS3.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 10,
+          "warning": ""
+        },
+        {
+          "query": "hybrid network combining several topology types",
+          "expected": "ASS3.docx",
+          "returned": [
+            "ASS3.docx",
+            "ASS1.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 13,
+          "warning": ""
+        },
+        {
+          "query": "Stop-and-Wait ARQ lost acknowledgment retransmission",
+          "expected": "Ass 5.docx",
+          "returned": [
+            "Ass 5.docx",
+            "ASS 6.docx",
+            "ASS1.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 12,
+          "warning": ""
+        },
+        {
+          "query": "sender waits for confirmation before transmitting another frame",
+          "expected": "Ass 5.docx",
+          "returned": [
+            "Ass 5.docx",
+            "ASS1.docx",
+            "ASS 6.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 13,
+          "warning": ""
+        },
+        {
+          "query": "Python UDP socket chat server client",
+          "expected": "ASS 6.docx",
+          "returned": [
+            "ASS 6.docx",
+            "ass 7.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 12,
+          "warning": ""
+        },
+        {
+          "query": "implement simple UDP sockets with socket module",
+          "expected": "ASS 6.docx",
+          "returned": [
+            "ASS 6.docx",
+            "Ass 5.docx",
+            "ASS3.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 12,
+          "warning": ""
+        },
+        {
+          "query": "classful IPv4 network broadcast address subnet mask",
+          "expected": "ass 7.docx",
+          "returned": [
+            "ass 7.docx",
+            "ASS 2.docx",
+            "ASS3.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 12,
+          "warning": ""
+        },
+        {
+          "query": "calculate first and last address using bitwise operations",
+          "expected": "ass 7.docx",
+          "returned": [
+            "ass 7.docx",
+            "Ass 5.docx",
+            "ASS3.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 15,
+          "warning": ""
+        }
+      ]
+    },
+    "hybrid": {
+      "hit_at_1": 1.0,
+      "mrr_at_5": 1.0,
+      "median_latency_ms": 276.0,
+      "queries": [
+        {
+          "query": "hub broadcasts packets to every port",
+          "expected": "ASS1.docx",
+          "returned": [
+            "ASS1.docx",
+            "ASS3.docx",
+            "ASS 6.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 15376,
+          "warning": ""
+        },
+        {
+          "query": "minimum seven hosts hub and switch LAN simulation",
+          "expected": "ASS1.docx",
+          "returned": [
+            "ASS1.docx",
+            "ASS3.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 2702,
+          "warning": ""
+        },
+        {
+          "query": "connect two LANs through one router",
+          "expected": "ASS 2.docx",
+          "returned": [
+            "ASS 2.docx",
+            "ASS1.docx",
+            "ASS3.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 140,
+          "warning": ""
+        },
+        {
+          "query": "ISR4331 router and twenty end devices",
+          "expected": "ASS 2.docx",
+          "returned": [
+            "ASS 2.docx",
+            "ASS1.docx",
+            "ASS3.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 2844,
+          "warning": ""
+        },
+        {
+          "query": "star ring bus tree mesh hybrid topology",
+          "expected": "ASS3.docx",
+          "returned": [
+            "ASS3.docx",
+            "ASS 2.docx",
+            "ASS1.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 2443,
+          "warning": ""
+        },
+        {
+          "query": "hybrid network combining several topology types",
+          "expected": "ASS3.docx",
+          "returned": [
+            "ASS3.docx",
+            "ASS 2.docx",
+            "ASS1.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 139,
+          "warning": ""
+        },
+        {
+          "query": "Stop-and-Wait ARQ lost acknowledgment retransmission",
+          "expected": "Ass 5.docx",
+          "returned": [
+            "Ass 5.docx",
+            "ASS 6.docx",
+            "ASS1.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 255,
+          "warning": ""
+        },
+        {
+          "query": "sender waits for confirmation before transmitting another frame",
+          "expected": "Ass 5.docx",
+          "returned": [
+            "Ass 5.docx",
+            "ASS 6.docx",
+            "ASS1.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 2633,
+          "warning": ""
+        },
+        {
+          "query": "Python UDP socket chat server client",
+          "expected": "ASS 6.docx",
+          "returned": [
+            "ASS 6.docx",
+            "ass 7.docx",
+            "ASS3.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 173,
+          "warning": ""
+        },
+        {
+          "query": "implement simple UDP sockets with socket module",
+          "expected": "ASS 6.docx",
+          "returned": [
+            "ASS 6.docx",
+            "ASS3.docx",
+            "Ass 5.docx",
+            "ASS1.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 130,
+          "warning": ""
+        },
+        {
+          "query": "classful IPv4 network broadcast address subnet mask",
+          "expected": "ass 7.docx",
+          "returned": [
+            "ass 7.docx",
+            "ASS3.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 297,
+          "warning": ""
+        },
+        {
+          "query": "calculate first and last address using bitwise operations",
+          "expected": "ass 7.docx",
+          "returned": [
+            "ass 7.docx",
+            "Ass 5.docx",
+            "ASS 2.docx"
+          ],
+          "rank": 1,
+          "latency_ms": 111,
+          "warning": ""
+        }
+      ]
+    }
+  },
+  "limitations": "12 developer-authored queries, two per assessment, no held-out set, single laptop, no statistical significance or generation-quality measurement. Rank is first relevant unique document among returned passages. Timings are one run."
+}
