@@ -1,0 +1,163 @@
+/* Orbii travels in viewport space, leaving the workspace layout intact. */
+.side-left .companion-panel { left: 140px; right: auto; }
+.companion-visual { position: fixed; top: 0; left: 0; width: 400px; height: 400px; transform-origin: 0 0; visibility: hidden; pointer-events: none; z-index: 25; will-change: transform; }
+.companion-visual .orbii-scene { inset: 0; }
+.companion-visual .orbii-canvas, .companion-visual .orbii-fallback { pointer-events: none; }
+.companion-visual .fallback-body { width: 265px; height: 265px; }
+.companion-visual .fallback-rim { inset: 34px 17px 62px; }
+.companion-visual .fallback-face { gap: 44px; }
+.companion-visual .fallback-face i { width: 29px; height: 46px; }
+.companion-hit { position: absolute; inset: 16% 16% 19%; border: 0; border-radius: 50%; background: transparent; pointer-events: auto; padding: 0; cursor: pointer; }
+.companion-hit:hover:not(:disabled) { background: transparent; border-color: transparent; box-shadow: 0 0 45px color-mix(in srgb,var(--orbii-start) 12%,transparent); }
+.companion-hit:active:not(:disabled) { transform: none; }
+.companion-hit:focus-visible { outline-width: 3px; outline-color: var(--orbii-start); }
+.robot-companion { position: fixed; inset: 0; z-index: 40; overflow: clip; pointer-events: none; }
+.companion-enabled .sidebar { z-index: 45; }
+.is-docked .companion-hit:focus-visible { outline-width: 10px; }
+.companion-status { position: fixed; left: 0; top: 0; z-index: 26; opacity: 0; visibility: hidden; text-align: center; }
+.is-docked .companion-status { opacity: 1; visibility: visible; }
+.companion-status>button { pointer-events: auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; max-width: 115px; padding: 6px 8px; font-size: 9px; line-height: 1.4; border-radius: 12px; background: var(--glass); border-color: var(--line); box-shadow: 0 4px 12px #29213c0b; }
+.companion-status>button>span { display: inline-block; width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: var(--orbii-start); }
+.companion-status b { display: grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; color: #30210b; background: #f4be58; }
+.companion-panel { position: fixed; bottom: 24px; right: 140px; z-index: 60; width: min(390px,calc(100vw - 160px)); max-height: min(690px,calc(100dvh - 125px)); display: flex; flex-direction: column; pointer-events: auto; border: 1px solid var(--line); border-radius: 25px; background: var(--panel); box-shadow: 0 20px 80px #1b143430; overflow: hidden; animation: orbii-conversation-in .25s ease-out; }
+.companion-panel>header { display: flex; align-items: center; gap: 11px; padding: 19px 21px; border-bottom: 1px solid var(--line); flex-shrink: 0; background: linear-gradient(110deg,color-mix(in srgb,var(--orbii-start) 8%,var(--panel)),var(--panel)); }
+.companion-panel>header h2 { font-size: 18px; letter-spacing: -.5px; }
+.companion-panel>header small { font-size: 10px; }
+.companion-panel>header>button { margin-left: auto; width: 34px; height: 34px; padding: 0; border-radius: 50%; background: transparent; font-size: 23px; font-weight: 400; }
+.orbii-mini { display: inline-flex; justify-content: center; align-items: center; gap: 9px; width: 40px; height: 32px; border: 3px solid var(--orbii-start,#9a6cf2); background: #131319; border-radius: 12px; box-shadow: 2px 2px 0 var(--orbii-end,#69d6ed); flex-shrink: 0; }
+.orbii-mini i { display: block; width: 5px; height: 10px; border-radius: 50%; background: #fff; }
+.companion-conversation { padding: 20px 22px; overflow-y: auto; overscroll-behavior: contain; min-height: 0; scrollbar-width: thin; }
+.orbii-speech, .orbii-question>p { font-size: 13px; line-height: 1.8; margin-bottom: 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.orbii-intent-context { border-left: 2px solid var(--orbii-start); padding-left: 12px; margin-bottom: 19px; }
+.orbii-intent-context>span { font-size: 8px; letter-spacing: 1px; color: var(--muted); }
+.orbii-intent-context p { font-size: 11px; line-height: 1.6; margin: 5px 0; overflow-wrap: anywhere; max-height: 70px; overflow-y: auto; }
+.orbii-intent-context button { font-size: 10px; }
+.orbii-permission h3 { font-size: 18px; font-weight: 550; line-height: 1.4; letter-spacing: -.4px; }
+.orbii-permission>p { font-size: 12px; margin: 11px 0; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.orbii-action-fields { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 2px 15px; margin: 17px 0; font-size: 12px; }
+.orbii-action-fields>div { padding: 12px 0; }
+.orbii-action-fields>div+div { border-top: 1px solid var(--line); }
+.orbii-action-fields dt { font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.orbii-action-fields dd { margin: 0; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.orbii-action-fields dd dl { margin: 10px 0 10px 8px; border-left: 1px solid var(--line); padding-left: 12px; }
+.orbii-action-fields dd ul { padding-left: 18px; margin: 0; }
+.orbii-action-fields dd li { margin: 5px 0; }
+.orbii-action-scope { color: var(--muted); font-size: 10px!important; }
+.orbii-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+.orbii-actions button { padding: 11px 14px; border-radius: 999px; font-size: 11px; }
+.orbii-permission .folder-check { font-size: 11px; align-items: flex-start; line-height: 1.7; }
+.orbii-permission .folder-check input { margin-top: 3px; }
+.orbii-question label { gap: 9px; font-size: 11px; }
+.orbii-question textarea { font-size: 13px; max-height: 200px; }
+.orbii-question>button { margin-top: 14px; }
+.orbii-caution { padding: 12px; background: var(--soft); border-radius: 12px; color: var(--ink); font-size: 12px; line-height: 1.7; margin: 13px 0; overflow-wrap: anywhere; }
+.orbii-queue { font-size: 11px; margin-bottom: 18px; }
+.orbii-queue select { width: 100%; font-size: 12px; }
+.companion-panel>.companion-preferences { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 13px 20px; border-top: 1px solid var(--line); margin: 0; background: var(--bg); flex-shrink: 0; }
+.companion-preferences button { padding: 7px 9px; border: 0; border-radius: 9px; background: transparent; font-size: 10px; color: var(--muted); }
+.companion-preferences button[aria-pressed=true] { background: var(--soft); color: var(--green); }
+.companion-handoff { display: flex; gap: 17px; align-items: center; border: 1px solid var(--line); background: var(--soft); padding: 23px; border-radius: 22px; margin: 23px 0; }
+.companion-handoff>div { flex: 1; min-width: 0; }
+.companion-handoff h3 { font-size: 16px; font-weight: 550; }
+.companion-handoff p { font-size: 12px; margin-top: 6px; color: var(--muted); overflow-wrap: anywhere; }
+.companion-visual .fallback-rim { background: linear-gradient(110deg,var(--orbii-start),var(--orbii-end)); }
+.mood-completed .fallback-face i { height: 26px; }
+.mood-paused .fallback-face i { height: 18px; }
+.mood-error .fallback-face i:first-child { rotate: -15deg; }
+.mood-error .fallback-face i:nth-of-type(2) { rotate: 15deg; }
+:root[data-orbii-paused=true] .hero-particle { animation-play-state: paused; }
+@keyframes orbii-conversation-in { from { opacity: 0; translate: -8px 10px; } to { opacity: 1; translate: 0 0; } }
+@media(max-width:1100px) and (min-width:641px) {
+  .companion-panel { right: 132px; }
+  .companion-handoff { flex-wrap: wrap; }
+  .companion-enabled .sidebar { flex-wrap: wrap; height: auto; padding-block: 16px; }
+  .companion-enabled .sidebar nav { order: 4; flex-basis: 100%; padding-top: 10px; border-top: 1px solid var(--line); }
+  .companion-enabled .brand { margin-right: auto; }
+}
+@media(max-width:640px) {
+  .shell.companion-enabled { padding-left: 8px; padding-bottom: 96px; }
+  .companion-panel { left: 12px; right: auto; bottom: 94px; width: calc(100vw - 24px); max-height: calc(100dvh - 190px); border-radius: 21px; }
+  .side-left .companion-panel { left: 12px; }
+  .companion-panel>header { padding: 15px 17px; }
+  .companion-conversation { padding: 17px; }
+  .companion-status { display: none; }
+  .is-docked .companion-visual { border-radius: 50%; background: var(--glass); box-shadow: 0 8px 35px #30234f25; }
+  .companion-handoff { padding: 19px; gap: 12px; flex-wrap: wrap; }
+  .companion-handoff h3 { font-size: 14px; }
+  .companion-handoff>button { margin-left: 52px; }
+  .orbii-actions button { min-height: 42px; }
+}
+@media(prefers-reduced-motion:reduce) { .companion-panel { animation: none; } }
+
+/* Expressions remain visible even when WebGL is unavailable. */
+.companion-visual .fallback-face { position: relative; }
+.fallback-cheek { position: absolute; bottom: 43px; width: 17px; height: 6px; border-radius: 50%; background: #f49ec58c; }
+.fallback-cheek.left { left: 27px; } .fallback-cheek.right { right: 27px; }
+.companion-visual .mood-completed .fallback-face i { background: transparent; width: 32px; height: 22px; border: 5px solid #fff; border-bottom: 0; border-radius: 50% 50% 0 0; }
+.orbii-listening-rings { position: absolute; inset: 11%; pointer-events: none; display: none; }
+.mood-listening .orbii-listening-rings { display: block; }
+.orbii-listening-rings i { position: absolute; inset: 0; border: 2px solid var(--orbii-end); border-radius: 50%; animation: orbii-listen 1.9s ease-out infinite; }
+.orbii-listening-rings i+i { animation-delay: .9s; }
+@keyframes orbii-listen { from { scale: .91; opacity: .7; } to { scale: 1.19; opacity: 0; } }
+.voice-input { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 12px 0; }
+.composer>.voice-input { margin: 0 25px; border-top: 1px solid var(--line); }
+.voice-button { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; font-size: 11px; min-height: 38px; }
+.voice-input.is-recording .voice-button { color: var(--ink); background: color-mix(in srgb,#e17cb9 15%,var(--panel)); border-color: #c980b4; }
+.voice-input>small { flex-basis: 100%; font-size: 10px; line-height: 1.6; color: var(--muted); }
+.voice-phase { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
+.voice-bars { display: inline-flex; gap: 3px; align-items: center; height: 20px; }
+.voice-bars i { width: 3px; height: 12px; background: #bb74ad; border-radius: 3px; animation: voice-bounce .8s ease-in-out infinite alternate; }
+.voice-bars i:nth-child(2) { animation-delay: -.3s; height: 20px; } .voice-bars i:nth-child(3) { animation-delay: -.6s; } .voice-bars i:nth-child(4) { animation-delay: -.2s; height: 16px; }
+@keyframes voice-bounce { to { scale: 1 .35; } }
+.voice-interim, .voice-error { flex-basis: 100%; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.voice-interim { color: var(--muted); font-style: italic; } .voice-error { color: var(--ink); padding: 10px; border-radius: 10px; background: var(--soft); }
+.orbii-chat form { display: grid; gap: 9px; margin-top: 18px; padding-top: 17px; border-top: 1px solid var(--line); }
+.orbii-chat label { font-size: 11px; font-weight: 600; }
+.orbii-chat textarea { width: 100%; font-size: 13px; line-height: 1.7; resize: vertical; max-height: 180px; min-height: 90px; }
+.orbii-chat-note { font-size: 10px; line-height: 1.6; color: var(--muted); }
+.orbii-chat-context { margin-top: 16px; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; max-height: 80px; overflow: auto; }
+.orbii-chat-progress { margin-top: 9px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.orbii-answer { margin: 15px 0; padding: 15px; background: var(--soft); border-radius: 5px 18px 18px; overflow-wrap: anywhere; }
+.orbii-answer .formatted-answer { font-size: 13px; line-height: 1.8; }
+.orbii-answer .formatted-answer h2, .orbii-answer .formatted-answer h3 { font-size: 16px; }
+.orbii-answer pre { overflow-x: auto; max-width: 100%; }
+.orbii-completion { padding: 18px; border: 1px solid color-mix(in srgb,#39ad7b 35%,var(--line)); border-radius: 20px; background: var(--panel); box-shadow: 0 14px 50px #152b2320; pointer-events: auto; animation: orbii-conversation-in .25s ease-out; }
+.robot-companion>.orbii-completion { position: fixed; right: 140px; bottom: 42px; width: min(330px,calc(100vw - 170px)); z-index: 60; }
+.robot-companion.side-left>.orbii-completion { left: 140px; right: auto; }
+.orbii-completion>div:first-child { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+.completion-check { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: #155436; background: #b5edce; }
+.orbii-completion small { margin-left: auto; font-size: 10px; color: var(--muted); }
+.orbii-completion>p { font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; max-height: 64px; overflow: auto; margin: 12px 0 15px; }
+.completion-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.completion-actions button { border-radius: 999px; padding: 9px 13px; font-size: 11px; }
+.companion-conversation>.orbii-completion { margin-bottom: 20px; box-shadow: none; }
+@media(max-width:640px) {
+  .robot-companion>.orbii-completion, .robot-companion.side-left>.orbii-completion { left: 12px; right: 12px; bottom: 100px; width: auto; }
+}
+:root[data-orbii-paused=true] .orbii-listening-rings i, :root[data-orbii-paused=true] .voice-bars i { animation: none; }
+@media(prefers-reduced-motion:reduce) { .orbii-listening-rings i, .voice-bars i, .orbii-completion { animation: none; } }
+
+.orbii-messages { display: grid; gap: 12px; }
+.orbii-message { padding: 13px 15px; border-radius: 17px 17px 17px 4px; background: var(--soft); overflow-wrap: anywhere; }
+.orbii-message.user { margin-left: 25px; border-radius: 17px 17px 4px 17px; background: color-mix(in srgb,var(--orbii-start) 9%,var(--panel)); }
+.orbii-message>small { font-size: 9px; letter-spacing: .7px; color: var(--muted); text-transform: uppercase; }
+.orbii-message .formatted-answer { font-size: 13px; line-height: 1.75; }
+.orbii-message .formatted-answer h2, .orbii-message .formatted-answer h3 { font-size: 16px; }
+.orbii-message pre { max-width: 100%; overflow-x: auto; }
+.orbii-message>button, .orbii-answer>button { font-size: 10px; padding: 6px 9px; border-radius: 999px; margin: 8px 5px 0 0; }
+.orbii-chat-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; color: var(--muted); margin: 14px 0; }
+.orbii-chat-toolbar button { font-size: 10px; padding: 6px 10px; }
+.orbii-voice-settings { margin-top: 16px; padding: 13px 0; border-top: 1px solid var(--line); font-size: 11px; }
+.orbii-voice-settings summary { cursor: pointer; }
+.orbii-voice-settings label { margin: 12px 0; font-size: 11px; }
+.orbii-voice-settings select { width: 100%; font-size: 11px; }
+.orbii-voice-settings small { display: block; line-height: 1.7; margin: 10px 0; color: var(--muted); }
+.orbii-voice-actions { display: flex; gap: 8px; margin-top: 12px; }
+.orbii-voice-settings button { border-radius: 999px; padding: 8px 11px; font-size: 10px; }
+.mood-speaking .orbii-listening-rings { display: block; }
+.mood-speaking .orbii-listening-rings i { animation-duration: 2.6s; }
+
+.orbii-output-format { display: flex; flex-wrap: wrap; gap: 10px 18px; border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; margin: 17px 0 0; }
+.orbii-output-format legend { padding: 0 5px; font-size: 11px; color: var(--muted); }
+.orbii-output-format label { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; margin: 0; cursor: pointer; }
+.orbii-output-format input { width: auto; margin: 0; accent-color: var(--orbii-start); }

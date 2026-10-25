@@ -429,7 +429,7 @@ class GoogleTests(unittest.TestCase):
     def test_missing_scope_does_not_call_google(self):
         with patch('services.connections.request_json') as request:
             with self.assertRaises(ConnectionError):
-                self.google.call('gmail', 'https://gmail.googleapis.com')
+                self.google.call('gmail', 'https://gmail.googleapis.com/gmail/v1/users/me/profile')
             request.assert_not_called()
 
     def test_refresh_preserves_refresh_token_and_disconnect_clears(self):

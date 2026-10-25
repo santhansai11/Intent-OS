@@ -43,6 +43,10 @@ class GoogleTools:
             {'file_id': 'Drive file ID', 'destination': 'New absolute local file path', 'export_mime': 'Optional supported Google export MIME type'}, ['file_id', 'destination'], self.drive_download)
         add('drive_upload', 'Upload a local file (up to 5 MB) to a NEW Drive file. Never replaces a remote file.', 'drive', True,
             {'source': 'Granted local file path', 'parent_id': 'Optional Drive folder ID; must be accessible to this app'}, ['source'], self.drive_upload)
+        add('drive_create_folder', 'Create a Google Drive folder. Search first to avoid duplicates; use the returned folder id as parent_id for each drive_upload. Reuse the successful checkpoint rather than creating it again.', 'drive', True,
+            {'name': 'Folder name', 'parent_id': 'Optional parent folder ID; omit to create in My Drive'}, ['name'], self.drive_create_folder)
+        add('calendar_get', 'Read one Calendar event, including its Meet link and conference generation status. Do not claim a pending conference is ready.', 'calendar', False,
+            {'event_id': 'Event ID from calendar_create or calendar_list'}, ['event_id'], self.calendar_get)
         add('calendar_update', 'Update title, time, location and description of an existing Calendar event. Requires approval.', 'calendar', True,
             {'event_id': 'Event ID from calendar_list', 'title': 'New title', 'start': 'RFC3339 start with timezone', 'end': 'RFC3339 end with timezone', 'location': 'Location', 'description': 'Description'},
             ['event_id', 'title', 'start', 'end', 'location', 'description'], self.calendar_update)
@@ -125,6 +129,15 @@ class GoogleTools:
             file.write(raw)
         return {'artifact': str(path), 'bytes': len(raw), 'source_id': metadata['id'], 'status': 'downloaded'}
 
+    def drive_create_folder(self, args, task):
+        name = args['name'].strip()
+        if not name or len(name) > 200 or any(ord(c) < 32 for c in name):
+            raise ValueError('Use a folder name of 1–200 characters without control characters')
+        metadata = {'name': name, 'mimeType': 'application/vnd.google-apps.folder'}
+        if args.get('parent_id'):
+            metadata['parents'] = [identifier(args['parent_id'])]
+        return self.google.call('drive', DRIVE.rstrip('/') + '?fields=id,name,mimeType,webViewLink', metadata)
+
     def drive_upload(self, args, task):
         path = self.registry.path(args['source'], task)
         if not path.is_file() or path.stat().st_size > 5_000_000:
@@ -139,6 +152,9 @@ class GoogleTools:
         return self.google.call('drive', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', body,
                                 content_type='multipart/related; boundary=' + boundary)
 
+    def calendar_get(self, args, task):
+        return self.google.call('calendar', CALENDAR + identifier(args['event_id']))
+
     def calendar_update(self, args, task):
         self.registry.dates(args)
         return self.google.call('calendar', CALENDAR + identifier(args['event_id']), {
@@ -149,11 +165,11 @@ class GoogleTools:
         self.google.call('calendar', CALENDAR + identifier(args['event_id']), method='DELETE')
         return {'status': 'deleted', 'event_id': args['event_id']}
 
-    @staticmethod
-    def maps_headers(fields):
-        key = os.environ.get('GOOGLE_MAPS_API_KEY')
+    def maps_headers(self, fields):
+        from services.maps_keys import MapsKeys
+        key = MapsKeys(self.registry.config).get()
         if not key:
-            raise ValueError('Set GOOGLE_MAPS_API_KEY and enable Places API (New) in Google Cloud')
+            raise ValueError('Save a Google Maps key in Connections and enable Places API (New) in Google Cloud')
         return {'X-Goog-Api-Key': key, 'X-Goog-FieldMask': fields}
 
     def maps_places(self, args, task):

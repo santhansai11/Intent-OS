@@ -3,6 +3,47 @@ import re
 from services.summary_policy import PlanCorrection, summary_requirements
 
 
+def attachment_continuation(task):
+    """Repair premature completion with the next proven DOCX read cursor."""
+    if 'files' not in task.get('scopes', []):
+        return None
+    required = [a for a in task.get('attachments', []) if a.get('role') == 'reference' or re.search(r'\b(?:all|every|attached|uploaded|these)\b', task.get('goal', ''), re.I)]
+    for attachment in required:
+        path = attachment['path']
+        if not path.lower().endswith('.docx'):
+            continue
+        denied = any(e.get('action', {}).get('arguments', {}).get('path') == path and
+                     isinstance(e.get('observation'), str) and
+                     ('USER DENIED' in e['observation'] or 'User skipped' in e['observation'])
+                     for e in task.get('history', []) if isinstance(e.get('action'), dict))
+        if denied:
+            continue
+        parts = {}
+        for step in task.get('steps', []):
+            result = step.get('result') or {}
+            results = result.get('documents', []) if step.get('tool') == 'files_read_many' else [result] if step.get('tool') == 'files_read' else []
+            for item in results:
+                if item.get('path') == path and item.get('content', '').strip():
+                    parts[int(item.get('offset', 0))] = item
+        if not parts:
+            continue  # Let the planner choose how to handle an unread attachment.
+        offset, seen = 0, set()
+        while offset in parts and offset not in seen:
+            seen.add(offset)
+            part = parts[offset]
+            if not part.get('truncated') or part.get('next_offset') is None:
+                break
+            cursor = str(part['next_offset'])
+            if not re.fullmatch(r'\d{1,7}', cursor) or int(cursor) <= offset:
+                break
+            offset = int(cursor)
+        else:
+            if offset not in parts:
+                return {'kind': 'tool', 'tool': 'files_read', 'arguments': {'path': path, 'offset': str(offset)},
+                        'summary': 'Read the remaining attachment content before drafting.', 'complete_after': False}
+    return None
+
+
 def contract_status(task):
     # Prove contiguous coverage from checkpoint metadata, not the bounded LLM context.
     documents = {}

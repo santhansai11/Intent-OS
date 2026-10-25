@@ -26,10 +26,30 @@ test_results.txt
 storage/runtime/
 storage/workspace/
 storage_test/
+# Keep all additional local documents, backups and runtime data private.
+/storage/
 
 # UI captures that include account history, local paths, or document identity
 docs/review2/screenshots/*
 !docs/review2/screenshots/external-datasets.png
-/output/pdf/
-/tmp/pdfs/
+# Generated reports, screenshots, audits and temporary tooling may contain user data.
+/output/
+/tmp/
 *.sqlite3*
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
+
+# Local credentials and exported authentication material
+credentials.json
+credentials-*.json
+client_secret*.json
+token.json
+tokens.json
+*.pem
+*.key
+*.p12
+*.pfx

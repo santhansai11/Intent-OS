@@ -8,7 +8,9 @@ export async function api(path, body) {
   const data = await response.json();
   if (!response.ok) {
     if (response.status === 403) token = undefined;
-    throw new Error(data.error || 'Request failed');
+    const error = new Error(data.error || 'Request failed');
+    error.status = response.status;
+    throw error;
   }
   return data;
 }

@@ -64,6 +64,8 @@ class OllamaPlanner:
         system += MAIL_GUIDANCE + 'Return JSON matching this schema: ' + json.dumps(ACTION_SCHEMA)
         from planner.document_context import DOCUMENT_GUIDANCE, RAG_GUIDANCE, document_context, summary_length_guidance
         system += '\n' + DOCUMENT_GUIDANCE + '\n' + RAG_GUIDANCE + summary_length_guidance(task)
+        from planner.response_policy import CONVERSATION_GUIDANCE
+        system += '\n' + CONVERSATION_GUIDANCE
         source_context = document_context(task, budget=12000)
         history = []
         remaining = max(2500, 18000 - len(json.dumps(source_context)))

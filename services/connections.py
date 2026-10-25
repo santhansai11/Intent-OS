@@ -15,12 +15,13 @@ import urllib.request
 
 
 class ConnectionError(RuntimeError):
-    def __init__(self, message, retryable=False, request_rejected=False, status=None, reason=None):
+    def __init__(self, message, retryable=False, request_rejected=False, status=None, reason=None, retry_after=0):
         super().__init__(message)
         self.retryable = retryable
         self.request_rejected = request_rejected
         self.status = status
         self.reason = reason
+        self.retry_after = retry_after
 
 
 def http_error(url, exc):
@@ -29,6 +30,12 @@ def http_error(url, exc):
     code = exc.code
     message = f'{host} returned HTTP {code}'
     reason = None
+    retry_after = 0
+    if host == 'api.groq.com' and code == 429:
+        try:
+            retry_after = min(3600, max(1, float(exc.headers.get('Retry-After', '60'))))
+        except (ValueError, TypeError, AttributeError):
+            retry_after = 60
     try:
         payload = json.loads(exc.read(32769))
         error = payload.get('error', {}) if isinstance(payload, dict) else {}
@@ -38,6 +45,29 @@ def http_error(url, exc):
         reasons = {item.get('reason') for item in [*error.get('errors', []), *details] if isinstance(item, dict)}
         known = ('SERVICE_DISABLED', 'accessNotConfigured', 'ACCESS_TOKEN_SCOPE_INSUFFICIENT', 'insufficientPermissions', 'authError', 'domainPolicy', 'dailyLimitExceeded', 'userRateLimitExceeded', 'rateLimitExceeded')
         reason = next((r for r in known if r in reasons), None)
+        service = ('Google Meet' if host == 'meet.googleapis.com' else
+                   'Google Calendar' if host == 'www.googleapis.com' and urllib.parse.urlsplit(url).path.startswith('/calendar/') else
+                   'Google Maps Routes' if host == 'routes.googleapis.com' else
+                   'Google Maps Places' if host == 'places.googleapis.com' else None)
+        if service:
+            api = {'Google Meet': 'meet.googleapis.com', 'Google Calendar': 'calendar-json.googleapis.com',
+                   'Google Maps Routes': 'routes.googleapis.com', 'Google Maps Places': 'places.googleapis.com'}[service]
+            if reason in ('SERVICE_DISABLED', 'accessNotConfigured'):
+                message = f'{service} API is disabled. Enable it in your Cloud project, then retry. https://console.cloud.google.com/apis/library/{api}'
+            elif code in (401, 403):
+                message = (f'{service} denied access. Check the Maps key restrictions, enabled APIs and billing in Google Cloud.' if 'Maps' in service else
+                           f'{service} denied access. Reconnect it in Connections and approve its permissions. Account or administrator restrictions may also apply.')
+        if host == 'www.googleapis.com' and urllib.parse.urlsplit(url).path.startswith(('/drive/', '/upload/drive/')):
+            if reason in ('SERVICE_DISABLED', 'accessNotConfigured'):
+                project = next((item.get('metadata', {}).get('consumer', '') for item in details if isinstance(item, dict) and isinstance(item.get('metadata'), dict)), '')
+                suffix = '?project=' + project.split('/')[1] if re.fullmatch(r'projects/\d+', project) else ''
+                message = 'Google Drive API is disabled for this Cloud project. Enable Google Drive API, wait for activation, then resume. https://console.cloud.google.com/apis/library/drive.googleapis.com' + suffix
+            elif reason in ('ACCESS_TOKEN_SCOPE_INSUFFICIENT', 'insufficientPermissions'):
+                message = 'Google Drive rejected the granted permissions. Reconnect Drive in Connections and approve access, then resume.'
+            elif reason == 'authError' or code == 401:
+                message = 'Google Drive authorization expired or is invalid. Reconnect Drive in Connections, then resume.'
+            elif code == 403:
+                message = 'Google Drive denied access. Check the selected file or folder permissions and your account’s Drive restrictions.'
         if host == 'gmail.googleapis.com':
             if reason in ('SERVICE_DISABLED', 'accessNotConfigured'):
                 project = next((item.get('metadata', {}).get('consumer', '') for item in details if isinstance(item, dict) and isinstance(item.get('metadata'), dict)), '')
@@ -58,7 +88,7 @@ def http_error(url, exc):
     finally:
         exc.close()
     return ConnectionError(message, code == 429 or code >= 500,
-                           request_rejected=code in (400, 401, 403, 404, 405, 413, 422, 429), status=code, reason=reason)
+                           request_rejected=code in (400, 401, 403, 404, 405, 413, 422, 429), status=code, reason=reason, retry_after=retry_after)
 
 
 def request_json(url, data=None, headers=None, timeout=30, form=False, method=None, response_bytes=False, content_type=None):
@@ -120,6 +150,7 @@ class CredentialStore:
 
 
 SCOPES = {
+    'meet': 'https://www.googleapis.com/auth/meetings.space.created https://www.googleapis.com/auth/meetings.space.readonly',
     'calendar': 'https://www.googleapis.com/auth/calendar.events',
     'gmail': 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send',
     'drive': 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
@@ -128,6 +159,7 @@ SCOPES = {
 
 class GoogleConnection:
     def __init__(self, config, store=None):
+        self.config = config
         self.store = store or CredentialStore(config.root)
         self.tokens = self.store.get()
         self.pending = {}
@@ -137,6 +169,7 @@ class GoogleConnection:
         self.redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:8765/api/google/callback')
 
     def status(self):
+        from services.maps_keys import MapsKeys
         # Tokens are replaced as one object; status must never wait on a network refresh.
         tokens = self.tokens
         scopes = tokens.get('scope', '').split()
@@ -144,13 +177,13 @@ class GoogleConnection:
                 'connected': bool(tokens.get('refresh_token') or tokens.get('access_token')),
                 'services': [name for name, scope in SCOPES.items() if set(scope.split()) <= set(scopes)],
                 'redirect_uri': self.redirect_uri,
-                'maps': bool(os.environ.get('GOOGLE_MAPS_API_KEY'))}
+                'maps': bool(MapsKeys(self.config).get())}
 
     def begin(self, services):
         if not self.client_id or not self.client_secret:
             raise ValueError('Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env, then restart IntentOS')
         if not isinstance(services, list) or not services or any(s not in SCOPES for s in services):
-            raise ValueError('Choose calendar, gmail, or drive')
+            raise ValueError('Choose calendar, gmail, drive or meet')
         state, verifier = secrets.token_urlsafe(32), secrets.token_urlsafe(48)
         challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
         with self.lock:
@@ -188,7 +221,14 @@ class GoogleConnection:
 
     def call(self, service, url, data=None, **options):
         parsed = urllib.parse.urlsplit(url)
-        if parsed.scheme != 'https' or parsed.hostname not in ('www.googleapis.com', 'gmail.googleapis.com') or parsed.username or parsed.port not in (None, 443):
+        endpoints = {'calendar': ('www.googleapis.com', ('/calendar/',)),
+                     'drive': ('www.googleapis.com', ('/drive/', '/upload/drive/')),
+                     'gmail': ('gmail.googleapis.com', ('/gmail/',)),
+                     'meet': ('meet.googleapis.com', ('/v2/',))}
+        if service not in endpoints:
+            raise ValueError('Unknown Google service')
+        host, prefixes = endpoints[service]
+        if parsed.scheme != 'https' or parsed.hostname != host or not parsed.path.startswith(prefixes) or parsed.username or parsed.port not in (None, 443):
             raise ValueError('Google requests must use an approved HTTPS endpoint')
         with self.lock:
             if not set(SCOPES[service].split()) <= set(self.tokens.get('scope', '').split()):

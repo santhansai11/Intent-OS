@@ -52,8 +52,16 @@ class Config:
         return self.values.get('gemini_model', os.environ.get('GEMINI_MODEL', 'gemini-3.5-flash-lite'))
 
     @property
+    def groq_model(self):
+        return self.values.get('groq_model', os.environ.get('GROQ_MODEL', 'openai/gpt-oss-120b'))
+
+    @property
     def execution(self):
         return {**{'workers': 3, 'model_slots': 1, 'read_slots': 2, 'adaptive': True}, **self.values.get('execution', {})}
+
+    @property
+    def scheduling(self):
+        return self.values.get('scheduling', 'adaptive')
 
     @property
     def embedding_model(self):
@@ -68,6 +76,9 @@ class Config:
         return ['/']
 
     def update(self, data):
+        scheduling = data.get('scheduling', self.scheduling)
+        if scheduling not in ('adaptive', 'strict_priority'):
+            raise ValueError('Choose adaptive or strict_priority scheduling')
         model = data.get('model', self.model)
         roots = data.get('roots', self.roots)
         if not isinstance(model, str) or len(model) > 200 or not isinstance(roots, list) or len(roots) > 20:
@@ -79,7 +90,8 @@ class Config:
             resolved.append(str(Path(item).expanduser().resolve()))
         provider = data.get('provider', self.provider)
         gemini_model = data.get('gemini_model', self.gemini_model)
-        if provider not in ('ollama', 'gemini') or not isinstance(gemini_model, str) or not gemini_model.strip() or len(gemini_model) > 120:
+        groq_model = data.get('groq_model', self.groq_model)
+        if provider not in ('ollama', 'gemini', 'groq') or any(not isinstance(m, str) or not m.strip() or len(m) > 120 for m in (gemini_model, groq_model)):
             raise ValueError('Choose a supported AI provider and model')
         execution = {**self.execution, **data.get('execution', {})}
         if set(execution) != {'workers', 'model_slots', 'read_slots', 'adaptive'} or any(type(execution[k]) is not int or not 1 <= execution[k] <= 8 for k in ('workers', 'model_slots', 'read_slots')) or not isinstance(execution['adaptive'], bool):
@@ -87,7 +99,7 @@ class Config:
         embedding_model = data.get('embedding_model', self.embedding_model)
         if not isinstance(embedding_model, str) or len(embedding_model) > 120:
             raise ValueError('Choose an installed local embedding model')
-        values = {**self.values, 'model': model.strip(), 'roots': resolved, 'provider': provider, 'gemini_model': gemini_model.strip(), 'execution': execution, 'embedding_model': embedding_model.strip()}
+        values = {**self.values, 'model': model.strip(), 'roots': resolved, 'provider': provider, 'gemini_model': gemini_model.strip(), 'groq_model': groq_model.strip(), 'execution': execution, 'embedding_model': embedding_model.strip(), 'scheduling': scheduling}
         temp = self.path.with_suffix('.tmp')
         temp.write_text(json.dumps(values, indent=2), encoding='utf-8')
         temp.replace(self.path)
@@ -99,6 +111,7 @@ class Config:
                 'ollama_url': self.ollama_url, 'local_only': self.provider == 'ollama',
                 'provider': self.provider, 'gemini_model': self.gemini_model,
                 'gemini_configured': bool(AIKeys(self).get()), 'system_roots': self.system_roots(),
-                'execution': self.execution, 'embedding_model': self.embedding_model,
+                'groq_model': self.groq_model, 'groq_configured': bool(AIKeys(self, 'groq').get()),
+                'execution': self.execution, 'scheduling': self.scheduling, 'embedding_model': self.embedding_model,
                 'ocr_ready': (self.root / 'ocr' / 'eng.traineddata').is_file()}
 

@@ -74,3 +74,26 @@ Drive read access covers existing account files; `drive.file` permits new upload
 - “Find cafes near Chennai Central and show a driving route to the one I choose.”
 
 The regression tests mock account responses; they do not establish access to your Google account. Complete setup and exercise read operations before approving real external writes.
+
+
+## Google Meet
+
+Enable **Google Meet API** in the same Google Cloud project as your OAuth client. In IntentOS Connections, select Meet together with your existing Gmail, Drive and Calendar services, click **Connect selected services**, and grant access on Google's consent screen. Enabling an API alone does not update an existing token's permissions.
+
+The Meet integration requests `meetings.space.created` and `meetings.space.readonly`. It can create reusable meeting links, read spaces, end an app-created active conference, list accessible conference records and participants, and read existing recording/transcript metadata and transcript entries. Recordings and transcripts must already exist; access depends on your account, the host and Google permissions. This integration does not join calls, record audio/video or automatically start recording/transcription. Calendar scheduling is separate: `calendar_create` accepts `meet_link="true"`, and `calendar_get` checks asynchronous link generation. Creating an event does not invite attendees.
+
+Use **Check Meet** to test read access without creating a meeting. Examples: “Create a Google Meet link”; “Schedule a meeting tomorrow at 10 AM for 30 minutes with a Meet link”; “List my recent Meet conferences.” Creation and ending meetings use the existing exact-action approval flow.
+
+Sources: [Meet authorization](https://developers.google.com/workspace/meet/api/guides/authenticate-authorize), [Meet REST reference](https://developers.google.com/workspace/meet/api/reference/rest/v2).
+
+## Maps setup in the app
+
+1. Open your Google Cloud project and enable billing for Maps usage.
+2. Enable **Routes API** and **Places API (New)**.
+3. In **APIs & Services → Credentials → Create credentials → API key**, create a key. Restrict its API access to Routes and Places API (New). Calls originate from the Python backend; HTTP referrer restrictions are for browser applications, not this backend. If you have a stable public outbound IP, use the matching server IP restriction.
+4. In IntentOS **Connections → Google Maps**, paste the key into the password field and click **Save Maps key**. The key is kept in Windows Credential Manager, separately from AI keys and Google OAuth. A saved key takes precedence over `GOOGLE_MAPS_API_KEY` in `.env`.
+5. Click **Test Maps APIs**. It tests both APIs using public New Delhi landmarks and reports separate results. It does not use your location. These requests use your project's Maps quota/billing.
+
+Source: [Routes API keys](https://developers.google.com/maps/documentation/routes/get-api-key), [Places API keys](https://developers.google.com/maps/documentation/places/web-service/get-api-key).
+
+Connection checks are available for Calendar, Drive, Gmail, Meet and Maps. A saved Google connection means tokens exist; use the checks to verify API access. Checks do not create events, meeting spaces, messages or Drive files.

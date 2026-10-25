@@ -101,6 +101,10 @@ class CapabilityRegistry:
                 'include_projects': {'type': 'string', 'enum': ['true', 'false'], 'description': 'Include nested code projects only when requested; explicitly selected project roots are always searched.'}})
         from services.google_tools import GoogleTools
         GoogleTools(self).register()
+        from services.meet import MeetTools
+        MeetTools(self).register()
+        self.tools['calendar_create']['parameters']['properties']['meet_link'] = {'type': 'string', 'enum': ['true', 'false'], 'description': 'Create a Google Meet link for this scheduled event; default false'}
+        self.tools['calendar_create']['description'] += ' Set meet_link=true to request a Meet link; generation can be pending, use calendar_get to check.'
         for name in ('calendar_list', 'drive_search'):
             self.tools[name]['parameters']['properties']['page_token'] = string('Next page token from a previous result')
 
@@ -383,16 +387,21 @@ class CapabilityRegistry:
             'timeMin': args['start'], 'timeMax': args['end'], 'singleEvents': 'true', 'orderBy': 'startTime', 'maxResults': 50,
             **({'pageToken': args['page_token']} if args.get('page_token') else {})})
         data = self.google.call('calendar', url)
-        return {'events': [{k: e.get(k) for k in ('id', 'summary', 'start', 'end', 'location', 'description', 'htmlLink', 'attachments')}
+        return {'events': [{k: e.get(k) for k in ('id', 'summary', 'start', 'end', 'location', 'description', 'htmlLink', 'attachments', 'hangoutLink', 'conferenceData')}
                            for e in data.get('items', [])], 'more': bool(data.get('nextPageToken')), 'next_page_token': data.get('nextPageToken')}
 
     def calendar_create(self, args, task):
         self.dates(args)
         import hashlib
         event_id = hashlib.sha256(task['pending']['id'].encode()).hexdigest()
-        return self.google.call('calendar', 'https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+        body = {
             'id': event_id, 'summary': args['title'], 'description': args['description'], 'location': args['location'],
-            'start': {'dateTime': args['start']}, 'end': {'dateTime': args['end']}})
+            'start': {'dateTime': args['start']}, 'end': {'dateTime': args['end']}}
+        suffix = ''
+        if args.get('meet_link') == 'true':
+            body['conferenceData'] = {'createRequest': {'requestId': event_id, 'conferenceSolutionKey': {'type': 'hangoutsMeet'}}}
+            suffix = '?conferenceDataVersion=1'
+        return self.google.call('calendar', 'https://www.googleapis.com/calendar/v3/calendars/primary/events' + suffix, body)
 
     def drive_search(self, args, task):
         query = args['query'].replace('\\', '\\\\').replace("'", "\\'")
@@ -412,7 +421,8 @@ class CapabilityRegistry:
         return self.google.call('gmail', 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {'raw': raw})
 
     def maps_route(self, args, task):
-        key = os.environ.get('GOOGLE_MAPS_API_KEY')
+        from services.maps_keys import MapsKeys
+        key = MapsKeys(self.config).get()
         if not key:
             raise ValueError('Set GOOGLE_MAPS_API_KEY in .env and enable Google Routes API')
         data = request_json('https://routes.googleapis.com/directions/v2:computeRoutes', {

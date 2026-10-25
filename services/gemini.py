@@ -11,36 +11,42 @@ from services.connections import ConnectionError
 
 
 class AIKeys:
-    def __init__(self, config):
+    providers = {'gemini': ('Gemini', 'GEMINI_API_KEY'), 'groq': ('Groq', 'GROQ_API_KEY')}
+
+    def __init__(self, config, provider='gemini'):
+        if provider not in self.providers:
+            raise ValueError('Unknown cloud provider')
+        self.provider = provider
+        self.label, self.environment_key = self.providers[provider]
         self.namespace = 'IntentOS:' + hashlib.sha256(str(config.root).encode()).hexdigest()[:16]
 
     def get(self):
         try:
             import keyring
-            saved = keyring.get_password(self.namespace, 'gemini-api-key')
+            saved = keyring.get_password(self.namespace, self.provider + '-api-key')
             if saved:
                 return saved
         except Exception:
             pass
-        return os.environ.get('GEMINI_API_KEY', '').strip()
+        return os.environ.get(self.environment_key, '').strip()
 
     def save(self, key):
         if not isinstance(key, str) or not 15 <= len(key.strip()) <= 512 or any(c.isspace() for c in key.strip()):
-            raise ValueError('Enter a valid Gemini API key')
+            raise ValueError(f'Enter a valid {self.label} API key')
         try:
             import keyring
             if keyring.get_keyring().priority <= 0 or 'plaintext' in type(keyring.get_keyring()).__name__.lower():
                 raise RuntimeError()
-            keyring.set_password(self.namespace, 'gemini-api-key', key.strip())
-            if keyring.get_password(self.namespace, 'gemini-api-key') != key.strip():
+            keyring.set_password(self.namespace, self.provider + '-api-key', key.strip())
+            if keyring.get_password(self.namespace, self.provider + '-api-key') != key.strip():
                 raise RuntimeError()
         except Exception:
-            raise ValueError('Could not save the Gemini key. Enable a secure OS credential store and retry.') from None
+            raise ValueError(f'Could not save the {self.label} key. Enable a secure OS credential store and retry.') from None
 
     def delete(self):
         import keyring
-        if keyring.get_password(self.namespace, 'gemini-api-key'):
-            keyring.delete_password(self.namespace, 'gemini-api-key')
+        if keyring.get_password(self.namespace, self.provider + '-api-key'):
+            keyring.delete_password(self.namespace, self.provider + '-api-key')
 
 
 class Gemini:

@@ -22,7 +22,7 @@ from services.capabilities import CapabilityRegistry
 from services.connections import GoogleConnection
 
 TERMINAL = {'COMPLETED', 'CANCELLED', 'FAILED'}
-SCOPES = {'system', 'files', 'web', 'calendar', 'drive', 'gmail', 'maps'}
+SCOPES = {'system', 'files', 'web', 'calendar', 'drive', 'gmail', 'maps', 'meet'}
 
 
 class Runtime:
@@ -43,6 +43,8 @@ class Runtime:
         self.policy = 'fair queue'
         self.reason = 'Waiting for an intent'
         self.revision = 0
+        from intent_kernel.os_lab import OSLab
+        self.os_lab = OSLab()
         # OS lock prevents two runtimes from dispatching the same durable process.
         self.lease = (self.config.root / 'kernel.lock').open('a+b')
         self.lease.seek(0)
@@ -199,6 +201,10 @@ class Runtime:
                 available.append(task)
         if not available:
             return None
+        if self.config.scheduling == 'strict_priority':
+            from intent_kernel.dispatch import strict_pick
+            self.policy, self.reason = 'strict priority + round robin', 'Highest runnable priority at each call boundary; no aging or deadline override'
+            return strict_pick(available, lambda t: (t['last_dispatch'], t['created_at'], t['id']))
         starved = [t for t in available if now - t['queued_at'] >= 30]
         dated = [t for t in available if t['deadline'] and t['deadline'] - now < 43200]
         if starved:
@@ -305,8 +311,15 @@ class Runtime:
                 outcome = ('progress' if pending['tool'] in ('files_collect', 'files_find_related', 'knowledge_index') and isinstance(result, dict) and result.get('status') == 'scanning' else 'result', result)
             else:
                 action = self.planner.decide(snapshot, self.registry.catalog())
-                from services.contracts import validate_completion
-                validate_completion(snapshot, action)
+                from services.contracts import validate_completion, attachment_continuation
+                from services.summary_policy import PlanCorrection
+                try:
+                    validate_completion(snapshot, action)
+                except PlanCorrection:
+                    continuation = attachment_continuation(snapshot)
+                    if continuation is None:
+                        raise
+                    action = continuation
                 if action['kind'] == 'ask':
                     import re
                     if re.search(r'\b(?:password|app password|client secret|access token|authorization code)\b', action.get('summary', ''), re.I):
@@ -337,9 +350,9 @@ class Runtime:
                     task['pending'] = None
                     task['state'] = 'RECOVERY' if task['attempts'] < 3 else 'BLOCKED'
                     task['retry_at'] = time.time() + 2 ** task['attempts'] if task['state'] == 'RECOVERY' else 0
-                elif pending and pending['tool'] in ('gmail_send', 'gmail_draft') and getattr(value, 'request_rejected', False):
+                elif pending and pending['tool'] in ('gmail_send', 'gmail_draft', 'drive_create_folder', 'drive_upload') and getattr(value, 'request_rejected', False):
                     task['state'] = 'BLOCKED'
-                    task['error'] += ' Gmail rejected this request; it was not sent or saved.'
+                    task['error'] += (' Gmail rejected this request; it was not sent or saved.' if pending['tool'].startswith('gmail_') else ' Drive rejected this request; the folder or file was not created.')
                     task['history'].append({'action': pending, 'observation': {'status': 'rejected', 'http_status': value.status, 'message': task['error']}})
                     task['pending'] = None
                 elif pending and self.registry.tools[pending['tool']]['writes']:
@@ -347,7 +360,7 @@ class Runtime:
                     task['error'] += ' The action may have partially completed. Check the destination before retrying.'
                 elif getattr(value, 'retryable', False) and task['attempts'] < 3:
                     task['state'] = 'RECOVERY'
-                    task['retry_at'] = time.time() + 2 ** task['attempts']
+                    task['retry_at'] = time.time() + max(2 ** task['attempts'], getattr(value, 'retry_after', 0))
                 else:
                     task['state'] = 'BLOCKED'
                 self._save(task, 'error', task['error'])
@@ -486,7 +499,7 @@ class Runtime:
             events = [{'seq': r[0], 'intent_id': r[1], 'timestamp': r[2], 'kind': r[3], 'message': r[4]}
                       for r in self.db.execute('SELECT * FROM events ORDER BY seq DESC LIMIT 150')]
             return {'revision': self.revision, 'intents': tasks, 'events': events,
-                    'scheduler': {'policy': self.policy, 'reason': self.reason, 'quantum': 'one decision or capability call'},
+                    'scheduler': {'policy': self.policy, 'reason': self.reason, 'mode': self.config.scheduling, 'quantum': 'one decision or capability call', 'preemption': 'cooperative call boundaries'},
                     'resources': {'workers': self.config.execution['workers'], 'active': len(self.locks), 'locks': dict(self.locks), 'memory_throttled': self.config.execution['adaptive'] and self._host_sample[1] >= 90},
                     'config': self.config.public(), 'google': self.google.status(),
                     'capabilities': self.registry.catalog()}

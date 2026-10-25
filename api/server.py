@@ -55,6 +55,8 @@ class IntentOSHandler(BaseHTTPRequestHandler):
                 return self.send_body(200, {'status': 'ok', 'runtime': 'durable-local', 'version': 2})
             if path == '/api/status':
                 return self.send_body(200, self.runtime.snapshot())
+            if path == '/api/os-lab':
+                return self.send_body(200, self.runtime.os_lab.snapshot())
             if path == '/api/knowledge':
                 return self.send_body(200, self.runtime.registry.knowledge.status())
             if path == '/api/datasets':
@@ -64,7 +66,7 @@ class IntentOSHandler(BaseHTTPRequestHandler):
             if path == '/api/models':
                 try:
                     provider = query.get('provider', [self.runtime.config.provider])[0]
-                    if provider not in ('ollama', 'gemini'):
+                    if provider not in ('ollama', 'gemini', 'groq'):
                         raise ValueError('Unknown AI provider')
                     return self.send_body(200, {'models': self.runtime.planner.models(provider), 'provider': provider, 'reachable': True})
                 except ConnectionError as exc:
@@ -130,6 +132,31 @@ class IntentOSHandler(BaseHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise ValueError('Expected a JSON object')
             path = urlsplit(self.path).path
+            if path == '/api/chat':
+                from services.companion_chat import chat_reply
+                from services.companion_context import application_context
+                completed = None
+                ident = data.get('intent_id')
+                if ident is not None:
+                    if not isinstance(ident, str):
+                        raise ValueError('Choose a completed intent to discuss.')
+                    with self.runtime.cv:
+                        task = self.runtime.tasks.get(ident)
+                        if not task or task['state'] != 'COMPLETED':
+                            raise ValueError('That completed intent is no longer available.')
+                        answer = task.get('answer', '')
+                        completed = {'goal': task['goal'][:4000], 'answer': answer[:12000], 'excerpt': len(answer) > 12000}
+                if not self.server.chat_slots.acquire(blocking=False):
+                    return self.send_body(429, {'error': 'Orbii is finishing another reply. Please try again shortly.'})
+                try:
+                    application = application_context(self.runtime.registry.catalog(), self.runtime.google.status())
+                    return self.send_body(200, chat_reply(self.runtime.config, data.get('message'), data.get('history'), completed, application))
+                finally:
+                    self.server.chat_slots.release()
+            if path == '/api/os-lab/reset':
+                return self.send_body(200, self.runtime.os_lab.reset(data.get('scenario', 'preemption'), data.get('quantum', 2), data.get('frames', 3)))
+            if path == '/api/os-lab/step':
+                return self.send_body(200, self.runtime.os_lab.step())
             if path == '/api/intents':
                 return self.send_body(201, self.runtime.submit(data.get('text'), data.get('priority', 'NORMAL'),
                     data.get('deadline'), data.get('roots'), data.get('scopes'), data.get('access_mode', 'selected'),
@@ -162,26 +189,43 @@ class IntentOSHandler(BaseHTTPRequestHandler):
                 return self.send_body(200, self.runtime.config.public())
             if path == '/api/ai/key':
                 from services.gemini import AIKeys
+                provider = data.get('provider', 'gemini')
+                keys = AIKeys(self.runtime.config, provider)
                 if data.get('remove') is True:
-                    AIKeys(self.runtime.config).delete()
+                    keys.delete()
                 else:
-                    AIKeys(self.runtime.config).save(data.get('key'))
+                    keys.save(data.get('key'))
                     with self.runtime.cv:
-                        self.runtime.config.update({'provider': 'gemini'})
-                return self.send_body(200, {'configured': bool(AIKeys(self.runtime.config).get())})
+                        self.runtime.config.update({'provider': provider})
+                return self.send_body(200, {'configured': bool(keys.get()), 'provider': provider})
             if path == '/api/ai/test':
                 from services.gemini import Gemini
+                from services.groq import Groq
                 from types import SimpleNamespace
-                model = data.get('model', self.runtime.config.gemini_model)
+                provider = data.get('provider', 'gemini')
+                if provider not in ('gemini', 'groq'):
+                    raise ValueError('Choose a supported cloud provider')
+                model = data.get('model', getattr(self.runtime.config, provider + '_model'))
                 if not isinstance(model, str):
-                    raise ValueError('Choose a Gemini model')
-                probe = Gemini(SimpleNamespace(root=self.runtime.config.root, gemini_model=model))
+                    raise ValueError('Choose a text model')
+                probe = (Groq if provider == 'groq' else Gemini)(SimpleNamespace(root=self.runtime.config.root, **{provider + '_model': model}))
                 answer, _ = probe.generate('Return JSON with ok=true.', {'message': 'Connection test'})
                 if not isinstance(answer, dict) or answer.get('ok') is not True:
-                    raise ConnectionError('Gemini responded but failed the JSON connection test')
-                return self.send_body(200, {'ok': True, 'model': model})
+                    raise ConnectionError(f'{provider.title()} responded but failed the JSON connection test')
+                return self.send_body(200, {'ok': True, 'model': model, 'provider': provider})
             if path == '/api/google/connect':
                 return self.send_body(200, {'url': self.runtime.google.begin(data.get('services'))})
+            if path == '/api/google/test':
+                from services.google_checks import check_service
+                return self.send_body(200, check_service(self.runtime.config, self.runtime.google, self.runtime.registry, data.get('service')))
+            if path == '/api/google/maps/key':
+                from services.maps_keys import MapsKeys
+                keys = MapsKeys(self.runtime.config)
+                if data.get('remove') is True:
+                    keys.delete()
+                else:
+                    keys.save(data.get('key'))
+                return self.send_body(200, {'configured': bool(keys.get())})
             if path == '/api/google/disconnect':
                 self.runtime.google.disconnect()
                 return self.send_body(200, {'disconnected': True})
@@ -200,6 +244,16 @@ class IntentOSHandler(BaseHTTPRequestHandler):
         origin = self.headers.get('Origin')
         allowed = {f'http://127.0.0.1:{port}', f'http://localhost:{port}', 'http://localhost:5173', 'http://127.0.0.1:5173'}
         if not self.trusted_host() or (origin and origin not in allowed) or not secrets.compare_digest(self.headers.get('X-IntentOS-Token', ''), self.server.token):
+            # Windows can reset a socket closed with unread request bytes and
+            # hide the 403. Discard only a small, bounded rejected body; no upload
+            # storage is touched and large unauthenticated uploads are not read.
+            try:
+                rejected_length = int(self.headers.get('Content-Length', '0'))
+                if 0 < rejected_length <= 8192:
+                    self.connection.settimeout(1)
+                    self.rfile.read(rejected_length)
+            except (ValueError, OSError):
+                pass
             self.close_connection = True
             return self.send_body(403, {'error': 'Refresh IntentOS to upload files'})
         length = int(self.headers.get('Content-Length', '0'))
@@ -250,6 +304,7 @@ def make_server(runtime, port=8765):
     server.daemon_threads = True
     server.runtime, server.token = runtime, secrets.token_urlsafe(32)
     server.stream_slots = threading.BoundedSemaphore(16)
+    server.chat_slots = threading.BoundedSemaphore(2)
     return server
 
 
