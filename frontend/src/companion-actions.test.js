@@ -43,6 +43,18 @@ test('offline and in-flight actions cannot be approved in the UI',()=>{
   }
 });
 
+test('group email approval shows both recipients and attachment names and sizes',()=>{
+  const task={...request,pending:{...request.pending,arguments:{to:'first@example.com,second@example.com',subject:'Report',body:'See the attached report.',attachments:['D:/reports/report.pdf']},mail_files:[{path:'D:/reports/report.pdf',name:'report.pdf',bytes:2048,sha256:'internal-checksum'}]}};
+  const {renderer,calls}=mount(task);
+  const content=JSON.stringify(renderer.toJSON());
+  for(const text of ['One email to all listed recipients','first@example.com,second@example.com','report.pdf','2.0','KB','1 file(s) attached']) assert.ok(content.includes(text),text);
+  assert.ok(!content.includes('internal-checksum'));
+  assert.equal(calls.length,0);
+  act(()=>renderer.root.findAllByType('button').find(b=>label(b)==='Allow this action').props.onClick());
+  assert.deepEqual(calls,[['intent-A','approve',{action_id:'action-1'}]]);
+  act(()=>renderer.unmount());
+});
+
 test('uncertain writes require duplicate-risk acknowledgement, reset for the next action',()=>{
   const calls=[];
   const task={...request,state:'REVIEW'};

@@ -1,13 +1,11 @@
 """The capability boundary: schemas, per-intent paths, resource identities and real I/O."""
 from __future__ import annotations
 
-import base64
 import os
 import re
 import shutil
 import tempfile
 from datetime import datetime
-from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -34,8 +32,8 @@ class CapabilityRegistry:
                  {'path': string('Folder; use . for the first granted folder')}, ['path'], self.list_files)
         self.add('files_search', 'Search names under a folder recursively; bounded to 5000 entries.', 'files', False,
                  {'path': string('Folder'), 'query': string('Filename substring')}, ['path', 'query'], self.search)
-        self.add('files_read', 'Read text, PDF text, or Office text. DOCX up to 100 MB; embedded media is skipped, no OCR. Follow next_offset until null to read all DOCX text.', 'files', False,
-                 {'path': string('One file to read'), 'offset': string('DOCX character offset from next_offset; omit on first read')}, ['path'], self.read)
+        self.add('files_read', 'Read text, PDF text, or Office text. DOCX up to 100 MB; embedded media is skipped, no OCR. Plain text/Markdown and DOCX are paginated: follow next_offset until null. Other formats can return bounded excerpts.', 'files', False,
+                 {'path': string('One file to read'), 'offset': string('Text/Markdown or DOCX character offset from next_offset; omit on first read')}, ['path'], self.read)
         self.add('files_read_many', 'Read 2–8 independent documents concurrently. Each result preserves its source and truncation status. Continue paginated documents with files_read.', 'files', False,
                  {'sources': {'type': 'array', 'items': {'type': 'string'}, 'minItems': 2, 'maxItems': 8}}, ['sources'], self.read_many)
         self.add('files_ocr', 'Read a scanned PDF page or image using LOCAL English OCR. May misrecognize numbers; no cloud upload. Follow next_page for subsequent pages.', 'files', False,
@@ -86,9 +84,9 @@ class CapabilityRegistry:
         self.add('drive_search', 'Search real Google Drive file metadata; does not download file content.', 'drive', False,
                  {'query': string('Filename substring')}, ['query'], self.drive_search)
         self.add('gmail_send', 'Send a real email through the connected Google account. Requires approval.', 'gmail', True,
-                 {'to': string('One complete email address'), 'subject': string('Subject'), 'body': string('Plain text body')},
+                 {'to': string('All requested recipients: 1–20 complete email addresses separated by commas'), 'subject': string('Subject'), 'body': string('Complete plain-text body including the full requested summary')},
                  ['to', 'subject', 'body'], self.gmail_send)
-        self.tools['gmail_send']['description'] = 'Compose and send a real plain-text email using connected Gmail OAuth. Supply a generated subject and body from the user context. An explicit send request authorizes one send to its named recipient. Never ask for a password.'
+        self.tools['gmail_send']['description'] = 'Compose and send one real plain-text email via Gmail OAuth to ALL requested recipients, comma-separated in to (1–20). Preserve full requested summary in body. Explicit requests for preview/approval require review; never silently omit recipients. Never ask for a password.'
         self.add('maps_route', 'Compute a real Google Maps route; requires a Routes API key.', 'maps', False,
                  {'origin': string('Starting address'), 'destination': string('Destination address'),
                   'mode': {'type': 'string', 'enum': ['DRIVE', 'WALK', 'BICYCLE', 'TRANSIT']}},
@@ -101,6 +99,10 @@ class CapabilityRegistry:
                 'include_projects': {'type': 'string', 'enum': ['true', 'false'], 'description': 'Include nested code projects only when requested; explicitly selected project roots are always searched.'}})
         from services.google_tools import GoogleTools
         GoogleTools(self).register()
+        from services.mail_message import ATTACHMENT_SCHEMA
+        for name in ('gmail_send', 'gmail_draft'):
+            self.tools[name]['parameters']['properties']['attachments'] = ATTACHMENT_SCHEMA
+            self.tools[name]['description'] += ' Optional attachments are local file paths; one message contains all recipients and files.'
         from services.meet import MeetTools
         MeetTools(self).register()
         self.tools['calendar_create']['parameters']['properties']['meet_link'] = {'type': 'string', 'enum': ['true', 'false'], 'description': 'Create a Google Meet link for this scheduled event; default false'}
@@ -122,7 +124,7 @@ class CapabilityRegistry:
         name, args = action['tool'], action['arguments']
         if name not in self.tools:
             raise ValueError(f'Unknown capability: {name}')
-        if name == 'gmail_send':
+        if name in ('gmail_send', 'gmail_draft'):
             from services.summary_policy import validate_summary_send
             validate_summary_send(task, action)
         if name in ('files_collect', 'files_find_related'):
@@ -149,6 +151,11 @@ class CapabilityRegistry:
                 raise ValueError(f'Invalid {key}: expected text within 100000 characters')
             if 'enum' in prop and value not in prop['enum']:
                 raise ValueError(f'Invalid {key}')
+        if name in ('gmail_send', 'gmail_draft'):
+            from services.mail_policy import validate_mail_recipients
+            validate_mail_recipients(task, action)
+            from services.mail_message import validate_attachments
+            validate_attachments(self, action, task)
         if self.tools[name]['scope'] == 'files' or name in ('drive_upload', 'drive_download'):
             if name in ('drive_upload', 'drive_download') and 'files' not in task['scopes']:
                 raise ValueError('Enable Local files for Drive uploads and downloads')
@@ -200,7 +207,7 @@ class CapabilityRegistry:
             return 'local-model'
         scope = self.tools[action['tool']]['scope']
         # Coarse exclusive locks intentionally serialize file operations, including aliases.
-        return 'filesystem' if scope == 'files' or action['tool'] in ('drive_upload', 'drive_download') else scope
+        return 'filesystem' if scope == 'files' or action['tool'] in ('drive_upload', 'drive_download') or (action['tool'] in ('gmail_send', 'gmail_draft') and action.get('arguments', {}).get('attachments')) else scope
 
     def execute(self, action, task):
         tool = self.validate(action, task)
@@ -257,7 +264,8 @@ class CapabilityRegistry:
             if not isinstance(offset, str) or not re.fullmatch(r'\d{1,7}', offset):
                 raise ValueError('Use the numeric DOCX next_offset from the previous read')
             return read_docx(path, int(offset))
-        if args.get('offset', '0') != '0':
+        is_plain_text = path.suffix.lower() not in ('.pdf', '.pptx', '.xlsx')
+        if not is_plain_text and args.get('offset', '0') != '0':
             raise ValueError('Text offsets are currently supported for DOCX files only')
         if path.stat().st_size > 10_000_000:
             raise ValueError('Choose a file smaller than 10 MB')
@@ -280,11 +288,24 @@ class CapabilityRegistry:
             from services.filesystem.service import _extract_document_text
             content = _extract_document_text(path)
         else:
+            offset = args.get('offset', '0')
+            if not isinstance(offset, str) or not re.fullmatch(r'\d{1,7}', offset):
+                raise ValueError('Use the numeric next_offset from the previous text read')
             with path.open('rb') as file:
-                raw = file.read(60001)
+                raw = file.read(10_000_001)
+            if len(raw) > 10_000_000:
+                raise ValueError('Choose a file smaller than 10 MB')
             if b'\x00' in raw:
                 raise ValueError('This binary file is not a supported document')
             content = raw.decode('utf-8', errors='replace')
+            start = int(offset)
+            if start > len(content):
+                raise ValueError('Text offset is beyond the end of this document')
+            end = min(start + 16000, len(content))
+            return {'path': str(path), 'content': content[start:end], 'offset': start,
+                    'next_offset': str(end) if end < len(content) else None,
+                    'total_characters': len(content), 'truncated': end < len(content),
+                    'coverage': 'UTF-8 text; offsets count decoded characters.'}
         return {'path': str(path), 'content': content[:16000], 'truncated': len(content) > 16000}
 
     @property
@@ -412,12 +433,8 @@ class CapabilityRegistry:
         return self.google.call('drive', url)
 
     def gmail_send(self, args, task):
-        if not re.fullmatch(r'[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+', args['to']):
-            raise ValueError('Supply one complete recipient email address')
-        mail = EmailMessage()
-        mail['To'], mail['Subject'] = args['to'], args['subject']
-        mail.set_content(args['body'])
-        raw = base64.urlsafe_b64encode(mail.as_bytes()).decode()
+        from services.mail_message import encode_message
+        raw = encode_message(self, args, task)
         return self.google.call('gmail', 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {'raw': raw})
 
     def maps_route(self, args, task):

@@ -54,8 +54,8 @@ class UploadStore:
         for ref in refs:
             if not isinstance(ref, dict) or not re.fullmatch(r'[a-f0-9]{32}', str(ref.get('id', ''))):
                 raise ValueError('Invalid attachment')
-            if ref.get('role', 'source') not in ('source', 'reference'):
-                raise ValueError('Choose source or reference for each attachment')
+            if ref.get('role', 'source') not in ('source', 'reference', 'email'):
+                raise ValueError('Choose source, reference or email attachment for each file')
             if ref['id'] in seen:
                 raise ValueError('The same attachment was selected twice')
             seen.add(ref['id'])

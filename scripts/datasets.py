@@ -102,7 +102,7 @@ def main():
     evaluation = commands.add_parser('evaluate')
     evaluation.add_argument('--queries', type=int, default=200)
     evaluation.add_argument('--labels', type=Path, help='JSON query/qrels cache; fetched from Microsoft if absent')
-    evaluation.add_argument('--output', type=Path, default=Path('docs/review2/external-dataset-results.json'))
+    evaluation.add_argument('--output', type=Path, default=Path('output/evaluation/external-dataset-results.json'))
     args = parser.parse_args()
     store = DatasetStore(Config(args.data_root).root)
     if args.command == 'list':

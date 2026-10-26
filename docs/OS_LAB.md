@@ -1,6 +1,14 @@
 # Process and memory management demonstration
 
-Open **OS Lab** in IntentOS. Select a scenario and press **Load / reset**, then **Step one tick** or **Play demonstration**. Playback speed only controls animation; it does not change CPU time or results. Export trace saves the actual state and event log as JSON. Lab state is shared by local browser tabs and resets when the server restarts; exported traces persist.
+Open **OS Lab** in IntentOS. Begin with **Start here: how a goal becomes a process**, a six-part text walkthrough of scheduling, permissions, resource use, checkpoints and recovery. This is an explanatory example, not an executed intent.
+
+Choose **01 · Take turns fairly**, then press **Next step**. Read the **What happened** and **Why?** explanation, and watch the three task cards. **Auto-play** advances the actual teaching VM; **Pause** stops further requests after any in-flight step completes. Animation speed changes playback pacing, not simulated CPU time. The lab preserves an existing run when opened; selecting a lesson explicitly restarts the practice run.
+
+The four lesson cards correspond to round robin, priority scheduling, arrivals/I/O, and memory/message passing. Every recorded timeline step can be selected for an explanation derived from its actual events; this pauses playback but does not rewind the VM. Task cards and memory slots remain labeled as the current state. **Try a different setup** exposes turn length and, in the memory lesson, frame count. Changed settings must be applied or discarded before continuing, so the visible setup cannot silently differ from the running configuration.
+
+**Under the hood** retains process control blocks, registers, instructions and the event log. The glossary explains terminology. The memory lesson distinguishes ordinary page faults from the intentional invalid-address failure. **Download run data (.json)** exports the actual state and trace. Lab state is shared by local browser tabs and resets when the server restarts; exported traces persist. Controls for real-intent scheduling are in a separate, labeled advanced section.
+
+The walkthrough connects the lab to the project's goal-as-process design. Production scheduling remains the implemented adaptive or strict-priority policy; the lesson simulator uses strict priority with round robin among equals. Its instruction-level preemption and paging are separate from the production runtime's cooperative call boundaries and file/service permissions.
 
 ## What was already implemented
 
@@ -36,7 +44,7 @@ CPU ticks include page faults and blocking instructions. Ready wait counts only 
 
 ## Real intent scheduling
 
-The **Apply strict priority to real intents** section enables `scheduling: strict_priority` in the existing settings API. It shares the lab's priority ordering helper, excludes blocked/resource-ineligible work, and rotates equals using their last dispatch. The default remains adaptive until selected. Strict mode disables aging and deadline overrides. It applies at safe call boundaries; in-flight calls finish normally. Execution slots still permit concurrency; use one slot in Processes to observe a serial dispatch sequence. OS Lab settings do not change production worker counts or priority policy.
+The **Advanced: change scheduling for real intents** section enables `scheduling: strict_priority` in the existing settings API. It shares the lab's priority ordering helper, excludes blocked/resource-ineligible work, and rotates equals using their last dispatch. The default remains adaptive until selected. Strict mode disables aging and deadline overrides. It applies at safe call boundaries; in-flight calls finish normally. Execution slots still permit concurrency; use one slot in Processes to observe a serial dispatch sequence. OS Lab settings do not change production worker counts or priority policy.
 
 ## Validation and implementation map
 

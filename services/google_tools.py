@@ -5,7 +5,6 @@ import mimetypes
 import os
 import re
 import uuid
-from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import urlencode, quote
 
@@ -36,7 +35,7 @@ class GoogleTools:
         add('gmail_read', 'Read a Gmail message, headers and plain text. Attachments are listed, not downloaded.', 'gmail', False,
             {'message_id': 'Message ID from Gmail search'}, ['message_id'], self.gmail_read)
         add('gmail_draft', 'Create a Gmail draft for review; does not send it.', 'gmail', True,
-            {'to': 'One email address', 'subject': 'Subject', 'body': 'Plain text body'}, ['to', 'subject', 'body'], self.gmail_draft)
+            {'to': 'All requested recipients: 1–20 complete email addresses separated by commas', 'subject': 'Subject', 'body': 'Complete plain text body'}, ['to', 'subject', 'body'], self.gmail_draft)
         add('drive_read', 'Read UTF-8 text from Drive or export a Google Doc as text. Use drive_download for PDF/Office files.', 'drive', False,
             {'file_id': 'Drive file ID'}, ['file_id'], self.drive_read)
         add('drive_download', 'Download a Drive file into a NEW local file, up to 10 MB. Google Docs, Sheets and Slides export as PDF by default.', 'drive', True,
@@ -79,12 +78,9 @@ class GoogleTools:
                 'content': content[:16000], 'truncated': len(content) > 16000, 'attachments': attachments}
 
     def gmail_draft(self, args, task):
-        if not re.fullmatch(r'[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+', args['to']):
-            raise ValueError('Supply one complete recipient email address')
-        mail = EmailMessage()
-        mail['To'], mail['Subject'] = args['to'], args['subject']
-        mail.set_content(args['body'])
-        return self.google.call('gmail', GMAIL + 'drafts', {'message': {'raw': base64.urlsafe_b64encode(mail.as_bytes()).decode()}})
+        from services.mail_message import encode_message
+        raw = encode_message(self.registry, args, task)
+        return self.google.call('gmail', GMAIL + 'drafts', {'message': {'raw': raw}})
 
     def drive_content(self, args, text=False):
         url = DRIVE + identifier(args['file_id'])

@@ -83,7 +83,7 @@ Vite proxies `/api` to port 8765.
 4. In Overview, choose **Ask anything** or **Gather related files · no AI needed**. For direct gathering, enter topics such as `cloud computing`; an optional date can be included, for example `AWS files saved after September 1 2026`.
 5. Select **Selected folders** and choose source folders, or select **Entire computer · accessible files** for that goal.
 6. Set **Save in folder** to an absolute destination such as `D:\meeting\` or `C:\Users\you\Desktop\Reports`. Missing folders are created when a file is saved. This destination is a separate per-goal grant; it does not need to be added to Connections. Leave it blank to use the workspace.
-7. Use the visible output checkbox to grant creation of new collections or reports for that goal. Disable it to review those actions individually. Moves, overwrites, and calendar changes still require approval for the exact action. An explicit email request with one recipient and message context authorizes one generated email without another confirmation.
+7. Use the visible output checkbox to grant creation of new collections or reports for that goal. Disable it to review those actions individually. Moves, overwrites, and calendar changes still require approval for the exact action. An explicit email request with one recipient and message context can authorize one generated email, unless the user requests a preview or approval. Group emails retain exact-action approval.
 
 Gemini keys are not exposed in source code, settings JSON, task context, or browser responses. The password field remains empty after saving. `GEMINI_API_KEY` is supported as a fallback; a key saved in Connections takes precedence. Saving a key activates Gemini for new goals. Use **Test & use model** to verify a real response and save the selected model. Google account OAuth is separate and is not required for local files or Gemini. IntentOS does not enable billing or silently change providers when a quota is reached. See [Gemini model documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) and [pricing and free-tier details](https://ai.google.dev/gemini-api/docs/pricing).
 
@@ -182,6 +182,8 @@ The Ollama integration uses its native [chat endpoint](https://docs.ollama.com/a
 
 ## Storage and API
 
+The repository contains application source, tests, dependency manifests, and technical setup guides. Local credentials, runtime data, generated reports, review documents, presentation files, screenshots, and report-building scripts stay outside version control. Copy `.env.example` to `.env` for local configuration; the example contains no credentials. Runtime directories are created when the application starts.
+
 Important runtime paths:
 
 - `storage/runtime/kernel.sqlite3` — private intent state and audit events; ignored by Git.
@@ -226,10 +228,10 @@ python scripts/workflow_live_test.py
 
 Add `--combined-only` to test the gathering-plus-brief workflow. These scripts preserve existing configured folders and leave Gemini selected. Reports are written under ignored `storage_test/`.
 
-For RAG evaluation, the Review 2 draft and benchmark data are in `docs/review2/`. Reproduce the 12-query experiment with:
+To evaluate retrieval on public datasets, use the dataset CLI and keep generated results in the ignored local output directory:
 
 ```powershell
-python scripts/rag_evaluation.py --corpus "C:\Example\Documents\Lab" --data-root storage_test/rag-evaluation/runtime --output storage_test/rag-evaluation/results.json
+python scripts/datasets.py evaluate --queries 200 --output output/evaluation/dataset-results.json
 ```
 
 For a live PDF workflow, start the server, install `qwen3:4b` in Ollama, and run `python scripts/pdf_live_test.py`. This explicit test selects that model, grants a newly created synthetic fixture folder, submits a natural-language request through the API, approves only the two expected PDF actions, saves outputs separately, checks page content/order, and compares the originals folder's SHA-256 manifest. Each run writes a `verification.json` report under `output/pdf/`. Normal app writes still require user approval. `tests/test_pdf_tools.py` also covers overwrite prevention, path grants, form preservation, and failure behavior.
@@ -300,6 +302,14 @@ Each chat request includes a server-generated description of IntentOS, its regis
 Each visit starts with text replies, including when upgrading from older versions that enabled speech automatically. Select **Text + voice** under **Reply format** to opt into spoken replies, or use **Read aloud** for just one response. Spoken replies use browser speech synthesis, with a gentle rate and pitch and a preference for available feminine English voices. Open **Voice options** to select an installed voice or preview it. Select **Text** to turn automatic speech off. **Stop speaking** interrupts playback. Starting microphone input, closing the conversation, navigating, or hiding the tab stops playback. Voice availability depends on the device/browser, and some voices use online services. Text remains available if playback is unsupported or blocked. No speech API key is needed.
 
 After updating this feature, rebuild the frontend and restart the Python server to load the chat endpoint.
+
+## Email recipients and project-review briefs
+
+Gmail sends and drafts support 1–20 comma-separated recipients in one plain-text email. The runtime checks a clear recipient list supplied by the user before approval and again before dispatch; it rejects omitted or added addresses rather than silently emailing only the first person. Source/API text cannot set the requested audience. Separate messages to different groups remain distinct requests.
+
+To email files, use **Attach files**, select **Email attachment** for each outgoing file, and name all recipients in the intent. Source/Reference uploads supply context and are not automatically emailed. Gmail sends and drafts accept up to 12 local attachments totaling 18 MB, combined with the full recipient list in a single MIME message and one API call. The approval preview shows recipients, body, file names, sizes and paths. Attachment sends always require approval; content hashes are checked again before dispatch so changed files require a new preview. Files must belong to this intent's uploads or granted folders. For a Drive file, download/export it into a granted folder first. Restart the backend after code updates to load the new capability schemas.
+
+Project-review emails based on repository/document descriptions use a full briefing rather than the routine short-email default. The planner is guided to include purpose, architecture/workflow, implemented features, OS concepts, limitations and verified logistics. When at least 2,000 source characters are available, a 220-word minimum guards against a tiny overview; explicit brevity or word-count requests override this default. This length check does not verify factual or semantic completeness. Plain text/Markdown and DOCX reads provide character offsets so later sections can be read before drafting. Other formats can still have excerpt limits that must be disclosed.
 
 ## Keeping local data private
 

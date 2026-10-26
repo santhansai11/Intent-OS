@@ -43,7 +43,7 @@ export function permissionQuestion(pending) {
   if (Object.hasOwn(QUESTIONS, pending?.tool)) return QUESTIONS[pending.tool];
   return `May I use ${String(pending?.tool || 'this tool').replaceAll('_', ' ')} for this intent?`;
 }
-const FIELD_LABELS = { to: 'Recipient', cc: 'Copy to', bcc: 'Blind copy to', subject: 'Subject', body: 'Message', path: 'File or folder', source: 'Source', destination: 'Destination', content: 'Content to save', title: 'Title', start: 'Starts', end: 'Ends', location: 'Location', description: 'Description', query: 'Search for', url: 'Web address', file_id: 'Drive file', event_id: 'Calendar event', folder_id: 'Drive folder', meet_link: 'Include a Meet link' };
+const FIELD_LABELS = { to: 'Recipients', cc: 'Copy to', bcc: 'Blind copy to', subject: 'Subject', body: 'Message', path: 'File or folder', source: 'Source', destination: 'Destination', content: 'Content to save', title: 'Title', start: 'Starts', end: 'Ends', location: 'Location', description: 'Description', query: 'Search for', url: 'Web address', file_id: 'Drive file', event_id: 'Calendar event', folder_id: 'Drive folder', meet_link: 'Include a Meet link' };
 export const fieldLabel = key => Object.hasOwn(FIELD_LABELS, key) ? FIELD_LABELS[key] : key.replaceAll('_', ' ').replace(/^./, value => value.toUpperCase());
 export const conversationKey = task => task ? `${task.id}:${task.state}:${task.pending?.id || task.question || ''}` : 'idle';
 

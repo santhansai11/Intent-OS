@@ -7,7 +7,14 @@ def attachment_continuation(task):
     """Repair premature completion with the next proven DOCX read cursor."""
     if 'files' not in task.get('scopes', []):
         return None
-    required = [a for a in task.get('attachments', []) if a.get('role') == 'reference' or re.search(r'\b(?:all|every|attached|uploaded|these)\b', task.get('goal', ''), re.I)]
+    for source in summary_requirements(task)['unfinished_summary_sources']:
+        denied = any(e.get('action', {}).get('arguments', {}).get('path') == source['path'] and
+                     isinstance(e.get('observation'), str) and ('DENIED' in e['observation'] or 'skipped' in e['observation'])
+                     for e in task.get('history', []) if isinstance(e.get('action'), dict))
+        if not denied:
+            return {'kind': 'tool', 'tool': 'files_read', 'arguments': {'path': source['path'], 'offset': source['next_offset']},
+                    'summary': 'Read the remaining project description before drafting the review email.', 'complete_after': False}
+    required = [a for a in task.get('attachments', []) if a.get('role') != 'email' and (a.get('role') == 'reference' or re.search(r'\b(?:all|every|attached|uploaded|these)\b', task.get('goal', ''), re.I))]
     for attachment in required:
         path = attachment['path']
         if not path.lower().endswith('.docx'):
@@ -71,7 +78,7 @@ def contract_status(task):
                 if part.get('next_offset') is None:
                     break
                 offset = int(part['next_offset'])
-    required = [a for a in task.get('attachments', []) if a.get('role') == 'reference' or re.search(r'\b(?:all|every|attached|uploaded|these)\b', task.get('goal', ''), re.I)]
+    required = [a for a in task.get('attachments', []) if a.get('role') != 'email' and (a.get('role') == 'reference' or re.search(r'\b(?:all|every|attached|uploaded|these)\b', task.get('goal', ''), re.I))]
     requirements = summary_requirements(task)
     return {**requirements, 'required_attachments': len(required), 'read_attachments': sum(a['path'] in read for a in required),
             'unread_attachments': [a['name'] for a in required if a['path'] not in read],
@@ -80,8 +87,11 @@ def contract_status(task):
 
 def validate_completion(task, action):
     tool = action.get('tool')
-    if action.get('kind') != 'finish' and tool not in ('gmail_send', 'document_export'):
+    if action.get('kind') != 'finish' and tool not in ('gmail_send', 'gmail_draft', 'document_export'):
         return
+    if tool in ('gmail_send', 'gmail_draft'):
+        from services.summary_policy import validate_summary_send
+        validate_summary_send(task, action)
     args = action.get('arguments', {})
     text = action.get('summary', '') if action.get('kind') == 'finish' else args.get('body', args.get('content', ''))
     if action.get('kind') == 'finish':

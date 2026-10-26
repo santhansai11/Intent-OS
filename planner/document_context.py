@@ -7,11 +7,21 @@ DOCUMENT_GUIDANCE = '''For a summary of all documents or assessments, inventory 
 def summary_length_guidance(task):
     from services.summary_policy import summary_requirements
     requirements = summary_requirements(task)
+    review = ''
+    if requirements['project_review_brief']:
+        review = ('\nPROJECT REVIEW EMAIL: Read the full project description, following every next_offset. '
+                  'The body is the review briefing itself, not a short notice. Use readable sections for '
+                  'project purpose, architecture and workflow, implemented capabilities, relevant OS concepts, '
+                  'limitations, and the requested event/link/route. Include only supported facts; distinguish '
+                  'proposed features from implemented ones. No 100-160-word cap applies. Honor explicit brevity. '
+                  'Include all requested recipients in one comma-separated to field and preserve requested approval.\n')
+        if requirements['minimum_email_words']:
+            review += f"The current evidence supports a minimum of {requirements['minimum_email_words']} words in the email body; aim for 250–450 useful words.\n"
     minimum = requirements['minimum_nonempty_lines']
     if not minimum:
-        return ''
+        return review
     target = minimum + 10
-    return (f'\nMANDATORY OUTPUT LENGTH: The user requires at least {minimum} nonempty lines in the email body. '
+    return review + (f'\nMANDATORY OUTPUT LENGTH: The user requires at least {minimum} nonempty lines in the email body. '
             f'Plan at least {target} separate newline-delimited lines of useful content. '
             'For each assessment use a heading and at least 10 distinct lines describing its tasks, procedures, code, observations and limitations from the sources. '
             'Place each sentence or bullet on its own actual newline in body. Do not combine several sentences into a single line. '

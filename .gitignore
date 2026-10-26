@@ -53,3 +53,25 @@ tokens.json
 *.key
 *.p12
 *.pfx
+
+# Project-review material and presentation build artifacts stay local.
+/docs/review*/
+/docs/IntentOS_Review*.pdf
+/docs/*Review*.docx
+/docs/*Review*.pptx
+/*.pdf
+/*.docx
+/*.pptx
+/scripts/build_review*.py
+/scripts/rag_evaluation.py
+/.chart-data-*/
+/.codex-finalizer/
+/reports/
+/presentations/
+
+# Additional local authentication exports and editor state.
+.npmrc
+.pypirc
+.netrc
+.DS_Store
+Thumbs.db

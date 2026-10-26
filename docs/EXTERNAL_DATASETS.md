@@ -46,7 +46,7 @@ Storage is under `<runtime>/datasets/`, ignored by Git for the default runtime. 
 ## Evaluation
 
 ```powershell
-.venv\Scripts\python.exe scripts/datasets.py evaluate --queries 200 --output docs/review2/external-dataset-results.json
+.venv\Scripts\python.exe scripts/datasets.py evaluate --queries 200 --output output/evaluation/external-dataset-results.json
 ```
 
 On first use this fetches official `queries.dev.tsv` from Microsoft's query archive and `qrels.dev.tsv`, then caches the parsed labels in the dataset directory. Later runs reuse them; `--labels PATH` selects another cache. Only queries with at least one judged relevant passage present in the installed subset are eligible. The first 200 eligible query IDs in lexical order are evaluated, unless a different limit is specified. Results include eligibility counts, per-query retrieved IDs, MRR@10, Recall@10, Hit@10, median and p95 search latency, corpus manifest and canonical query/label digests.
